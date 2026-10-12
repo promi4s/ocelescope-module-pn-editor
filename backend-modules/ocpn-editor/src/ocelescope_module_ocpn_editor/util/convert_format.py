@@ -1,7 +1,7 @@
 from ocelescope.resource.default.petri_net import Arc, ArcType, PetriNet, Place, Transition
 from ocelescope_module_ocpn_editor.model.editor_ocpn import OcpnExportRequest, OcpnImportResponse, EditorArc, EditorOCPN, EditorPlace, EditorTransition
 from ocelescope_module_ocpn_editor.model.editor_pn import ImportResponse, ImportPlace,ImportArc,ImportTransition
-
+from ocelescope_module_ocpn_editor.model.editor_pn import ClassicPetriNet, ClassicArc, ClassicPlace, ClassicTransition
 
 
 def convert_to_OCPN(ocpn: OcpnExportRequest) -> PetriNet:
@@ -54,7 +54,7 @@ def convert_from_OCPN(ocpn:PetriNet) -> OcpnImportResponse:
 
     transitions = [EditorTransition(id=transition.name, label=transition.label) for transition in ocpn.transitions]
     initial_marking = ocpn.initial_marking if ocpn.initial_marking is not None else {}
-    final_marking = ocpn.final_marking if ocpn.initial_marking is not None else {}
+    final_marking = ocpn.final_marking if ocpn.final_marking is not None else {}
 
     place_ids = {place.id for place in places}
     place_in_out_mult: dict[str, tuple[dict[str, bool], dict[str, bool]]] = {
@@ -115,3 +115,12 @@ def convert_from_pnml(net:dict) -> ImportResponse:
         arcs.append(ImportArc(source=source, target=target, weight=arc.get("weight", 1)))
 
     return ImportResponse(places=places, transitions=transitions, arcs=arcs)
+
+
+def convert_to_pnet_resource(net: dict) -> ClassicPetriNet:
+    pnet = convert_from_pnml(net)
+    return ClassicPetriNet(
+        places=[ClassicPlace(**p.model_dump()) for p in pnet.places],
+        transitions=[ClassicTransition(**t.model_dump()) for t in pnet.transitions],
+        arcs=[ClassicArc(**a.model_dump()) for a in pnet.arcs],
+    )

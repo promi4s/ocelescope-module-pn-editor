@@ -160,9 +160,6 @@ const Editor = (
             <Text fw={600} size="lg">
               Object-Centric Petri-Net Editor
             </Text>
-            <Group>
-
-            </Group>
             <Group gap={4} p={4} style={{ border: "1px solid var(--mantine-color-default-border)", borderRadius: "var(--mantine-radius-md)" }}>
               <input
                 ref={fileInputRef}

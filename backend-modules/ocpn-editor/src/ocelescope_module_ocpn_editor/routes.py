@@ -3,7 +3,7 @@ import tempfile
 import os
 from r4pm.petri_net import export_pnml, import_pnml
 from fastapi.responses import PlainTextResponse
-from ocelescope_module_ocpn_editor.util.convert_format import convert_to_OCPN, convert_from_OCPN
+from ocelescope_module_ocpn_editor.util.convert_format import convert_to_OCPN, convert_from_OCPN, convert_to_pnet_resource
 from ocelescope_module_ocpn_editor.model.editor_ocpn import OcpnExportRequest, OcpnImportResponse
 from ocelescope import PetriNet
 from ocelescope_module_ocpn_editor.util.convert_format import convert_from_pnml
@@ -14,6 +14,24 @@ from typing import cast
 
 router = APIRouter()
 
+@router.get("/{ocel_id}/objects/types", operation_id="objectTypes")
+def get_object_types(ocel:ApiOcel) -> list[str]:
+    return ocel.objects.types
+
+
+@router.get("/{ocel_id}/events/activities", operation_id="eventActivities")
+def get_event_activities(ocel:ApiOcel) -> list[str]:
+    return ocel.events.activities
+
+
+# ============================================
+
+#              Classic Petri-Net
+
+# ============================================
+
+
+# Export/Import
 
 @router.post("/petri-net/export/pnml", operation_id="exportPetriNetPnml")
 def export_petri_net_pnml(net: dict) -> PlainTextResponse:
@@ -44,6 +62,26 @@ async def import_petri_net_pnml(file: UploadFile) -> ImportResponse:
 
     return convert_from_pnml(net)
 
+# Load/Save to Session
+
+@router.post("/petri-net/export/session")
+def save_to_session_classic(session: ApiSession, pnet: dict, name:str):
+    resource_pnet = convert_to_pnet_resource(pnet)
+    print(resource_pnet)
+    store = ResourceStore.from_resource(resource_pnet, name=name)
+    print(store)
+    session.add_resource(store)
+
+
+
+# ============================================
+
+#           Object-Centric Petri Net
+
+# ============================================
+
+
+# Export/Import
 
 @router.post("/ocpn/export/ocelescope", operation_id="exportOCPN")
 def export_ocpn(ocpn: OcpnExportRequest) -> PlainTextResponse:
@@ -69,14 +107,7 @@ async def import_ocpn(file: UploadFile) -> OcpnImportResponse:
     return convert_from_OCPN(pnet)
 
 
-@router.get("/{ocel_id}/objects/types", operation_id="objectTypes")
-def get_object_types(ocel:ApiOcel) -> list[str]:
-    return ocel.objects.types
-
-
-@router.get("/{ocel_id}/events/activities", operation_id="eventActivities")
-def get_event_activities(ocel:ApiOcel) -> list[str]:
-    return ocel.events.activities
+# Load/Save to session
 
 
 @router.post("/ocpn/export/session", operation_id="saveSession")

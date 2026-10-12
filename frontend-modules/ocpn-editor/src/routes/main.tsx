@@ -2,6 +2,8 @@ import { lazy, Suspense, useState } from "react";
 import { Center, Loader } from "@mantine/core";
 import { useCurrentOcel } from "@ocelescope/core";
 import { useObjectTypes, useEventActivities } from "../api/ocpnEditor";
+import { ResourceSelect } from "@ocelescope/resources";
+
 
 
 const PetriNetEditor = lazy(() => import("./PN/PNEditor"));
