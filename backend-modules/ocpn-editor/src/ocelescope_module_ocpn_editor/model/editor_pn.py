@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from ocelescope import Resource
+from pydantic import Field
 
 
 class ImportPlace(BaseModel):
@@ -44,6 +45,9 @@ class ClassicArc(BaseModel):
 
 
 class ClassicPetriNet(Resource):
-    places: list[ClassicPlace]
-    transitions: list[ClassicTransition]
-    arcs: list[ClassicArc]
+    label = "Classic Petri Net"
+    description = "A classic Petri net"
+
+    places: list[ClassicPlace] = Field(default_factory=list)
+    transitions: list[ClassicTransition] = Field(default_factory=list)
+    arcs: list[ClassicArc] = Field(default_factory=list)

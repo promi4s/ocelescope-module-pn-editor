@@ -230,7 +230,7 @@ const Editor = (
 
                 ]}
             />
-            <Stack gap={0} pt={"sm"}>
+            <Stack gap={0} pt={"xs"}>
               <Card withBorder radius="sm" padding="sm">
                 <Text fw={600} size="sm">
                   New Place

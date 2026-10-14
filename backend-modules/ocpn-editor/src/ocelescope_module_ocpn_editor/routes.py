@@ -7,7 +7,7 @@ from ocelescope_module_ocpn_editor.util.convert_format import convert_to_OCPN, c
 from ocelescope_module_ocpn_editor.model.editor_ocpn import OcpnExportRequest, OcpnImportResponse
 from ocelescope import PetriNet
 from ocelescope_module_ocpn_editor.util.convert_format import convert_from_pnml
-from ocelescope_module_ocpn_editor.model.editor_pn import ImportResponse
+from ocelescope_module_ocpn_editor.model.editor_pn import ImportResponse, ClassicPetriNet
 from ocelescope_backend.app.dependencies import ApiOcel, ApiSession
 from ocelescope_backend.app.internal.model.resource import ResourceStore
 from typing import cast
@@ -67,10 +67,8 @@ async def import_petri_net_pnml(file: UploadFile) -> ImportResponse:
 @router.post("/petri-net/export/session")
 def save_to_session_classic(session: ApiSession, pnet: dict, name:str):
     resource_pnet = convert_to_pnet_resource(pnet)
-    print(resource_pnet)
-    store = ResourceStore.from_resource(resource_pnet, name=name)
-    print(store)
-    session.add_resource(store)
+    session.add_resource(ResourceStore.from_resource(resource_pnet, name=name))
+    print(session.list_resources())
 
 
 
