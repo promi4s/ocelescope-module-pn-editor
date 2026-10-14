@@ -144,20 +144,21 @@ const Editor = (
     <>
     <Splitter
       splitterRef={splitterRef}
-      lineSize={4}
+      lineSize={2}
       handleColor="var(--mantine-color-default-border)"
       h={"100%"}
     >
       <Splitter.Pane defaultSize={75} min={"10%"} collapsible>
-        <Stack gap={5} p="xs" h="100%">
+        <Stack gap={5} pt="xs" h="100%">
           <Group
-            px="xs"
             pb={"xs"}
+            pl={"xs"}
+            pr={"xs"}
             wrap="nowrap"
             justify="space-between"
             style={{ borderBottom: "2px solid var(--mantine-color-default-border)" }}
           >
-            <Text fw={600} size="lg">
+            <Text fw={600} size="md">
               Object-Centric Petri-Net Editor
             </Text>
             <Group gap={4} p={4} style={{ border: "1px solid var(--mantine-color-default-border)", borderRadius: "var(--mantine-radius-md)" }}>
@@ -216,16 +217,6 @@ const Editor = (
       <Splitter.Pane defaultSize={25} min={"10%"} collapsible>
         <ScrollArea h="100%" type="auto">
           <Stack gap="xs" p="md">
-            <Group
-                pb="xs"
-                wrap="nowrap"
-                justify="space-between"
-                style={{ borderBottom: "2px solid var(--mantine-color-default-border)" }}
-              >
-              <Text fw={600} size="md">
-                Toolbox
-              </Text>
-            </Group>
             <Text fw={600} size="sm">
               Editor Type
             </Text>
@@ -239,10 +230,7 @@ const Editor = (
 
                 ]}
             />
-            <Text fw={600} size="sm">
-              Add Elements
-            </Text>
-            <Stack gap={0}>
+            <Stack gap={0} pt={"sm"}>
               <Card withBorder radius="sm" padding="sm">
                 <Text fw={600} size="sm">
                   New Place
@@ -251,7 +239,7 @@ const Editor = (
                   Set the object type, initial, and final marking.
                 </Text>
                 <Autocomplete
-                  size="xs"
+                  size="sm"
                   label="Object Type"
                   mb="xs"
                   value={newPlaceObjectType}
@@ -264,8 +252,8 @@ const Editor = (
                     }
                   }}
                 />
-                <NumberInput size="xs" label="Initial Tokens" mb="xs" value={newPlaceTokens} onChange={(v) => setNewPlaceTokens(Number(v)|| 0)}/>
-                <NumberInput size="xs" label="Final Tokens" mb="xs" value={newPlaceFinalTokens} onChange={(v) => setNewPlaceFinalTokens(Number(v)|| 0)}/>
+                <NumberInput size="sm" label="Initial Tokens" mb="xs" value={newPlaceTokens} onChange={(v) => setNewPlaceTokens(Number(v)|| 0)}/>
+                <NumberInput size="sm" label="Final Tokens" mb="xs" value={newPlaceFinalTokens} onChange={(v) => setNewPlaceFinalTokens(Number(v)|| 0)}/>
                 <Button variant="default" disabled={!newPlaceObjectType} onClick={handleAddPlace}>
                   Add Place
                 </Button>

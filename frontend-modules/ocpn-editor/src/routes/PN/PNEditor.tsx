@@ -96,20 +96,21 @@ return (
   <>
       <Splitter
         splitterRef={splitterRef}
-        lineSize={4}
+        lineSize={2}
         handleColor="var(--mantine-color-default-border)"
         h={"100%"}
       >
       <Splitter.Pane defaultSize={75} min={"10%"} collapsible>
-        <Stack p="xs" h="100%">
+        <Stack gap={5} pt="xs" h="100%">
           <Group
-            px="sm"
-            py="xs"
+            pb={"xs"}
+            pl={"xs"}
+            pr={"xs"}
             wrap="nowrap"
             justify="space-between"
             style={{ borderBottom: "2px solid var(--mantine-color-default-border)" }}
           >
-            <Text fw={600} size="lg">Petri-Net Editor</Text>
+            <Text fw={600} size="md">Petri-Net Editor</Text>
               <Group gap={4} p={4} style={{ border: "1px solid var(--mantine-color-default-border)", borderRadius: "var(--mantine-radius-md)" }}>
                 <input
                   ref={fileInputRef}
@@ -179,22 +180,12 @@ return (
 
         <Splitter.Pane defaultSize={25} min={"10%"} collapsible>
           <ScrollArea h="100%" type="auto">
-            <Stack gap="sm" p="md">
-                <Group
-                  px="sm"
-                  py="xs"
-                  wrap="nowrap"
-                  justify="space-between"
-                  style={{ borderBottom: "2px solid var(--mantine-color-default-border)" }}
-                >
-                  <Text fw={600} size="lg">
-                      Toolbox
-                  </Text>
-                </Group>
-                <Text fw={600} size="md">
+            <Stack gap={"xs"} p="md">
+                <Text fw={600} size="sm">
                     Editor Type
                 </Text>
                 <SegmentedControl
+                size="xs"
                 value={mode}
                 onChange={(v) => onModeChange(v as EditorMode)}
                 data={[
@@ -202,167 +193,165 @@ return (
                   { label: "Classic", value: "classic" }
                 ]}
                 />
-                <Text fw={600} size="md">
-                  Add Elements
-                </Text>
+                <Stack gap={0} pt={"sm"}>
+                  <Card withBorder radius="sm" padding="sm">
+                    <Text fw={600} size="sm">
+                      New Place
+                    </Text>
+                    <Text size="xs" c="dimmed" mb="xs">
+                      Select the number of initial and final tokens.
+                    </Text>
+
+                    <NumberInput 
+                      label="Initial Tokens" 
+                      min={0}
+                      mb="xs" 
+                      value={newPlaceTokens} 
+                      onChange={(v) => setNewPlaceTokens(Number(v) || 0)} 
+                      onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            actionsRef.current?.addPlace(newPlaceTokens,newPlaceFinalTokens);
+                          }
+                        }
+                      }
+                      />
+                    <NumberInput 
+                      label="Final Tokens" 
+                      min={0} 
+                      mb="xs"
+                      value={newPlaceFinalTokens} 
+                      onChange={(v) => setNewPlaceFinalTokens(Number(v) || 0)}
+                      onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            actionsRef.current?.addPlace(newPlaceTokens,newPlaceFinalTokens);
+                          }
+                        }
+                      }
+                      />
+
+                    <Button variant="default" onClick={() => {actionsRef.current?.addPlace(newPlaceTokens,newPlaceFinalTokens)}}>
+                      Add place
+                    </Button>
+                  </Card>
+
+                  <Card withBorder radius="sm" padding="sm">
+                    <Text fw={600} size="sm">
+                      New Transition
+                    </Text>
+                    <Text size="xs" c="dimmed" mb="xs">
+                      Set the transition label.
+                    </Text>
+                    <TextInput 
+                      label="Label" 
+                      mb="xs" 
+                      value={newTransitionLabel}    
+                      onChange={(e) => setNewTransitionLabel(e.currentTarget.value)} 
+                      onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            actionsRef.current?.addTransition(newTransitionLabel)
+                          }
+                        }}
+                      />
+                    <Button variant="default" onClick={() => {actionsRef.current?.addTransition(newTransitionLabel)}}>
+                      Add transition
+                    </Button>
+                  </Card>
 
                 <Card withBorder radius="sm" padding="sm">
                   <Text fw={600} size="sm">
-                    New Place
+                    New Arc
                   </Text>
                   <Text size="xs" c="dimmed" mb="xs">
-                    Select the number of initial and final tokens.
-                  </Text>
-
-                  <NumberInput 
-                    label="Initial Tokens" 
-                    min={0}
-                    mb="xs" 
-                    value={newPlaceTokens} 
-                    onChange={(v) => setNewPlaceTokens(Number(v) || 0)} 
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          actionsRef.current?.addPlace(newPlaceTokens,newPlaceFinalTokens);
-                        }
-                      }
-                    }
-                    />
-                  <NumberInput 
-                    label="Final Tokens" 
-                    min={0} 
-                    mb="xs"
-                    value={newPlaceFinalTokens} 
-                    onChange={(v) => setNewPlaceFinalTokens(Number(v) || 0)}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          actionsRef.current?.addPlace(newPlaceTokens,newPlaceFinalTokens);
-                        }
-                      }
-                    }
-                    />
-
-                  <Button variant="default" onClick={() => {actionsRef.current?.addPlace(newPlaceTokens,newPlaceFinalTokens)}}>
-                    Add place
+                    Set the source and target nodes.
+                    </Text>
+                  <Select
+                    label="From"
+                    placeholder="Select source"
+                    data={sourceOptions}
+                    value={arcSource}
+                    onChange={(value) => {
+                      setArcSource(value);
+                      setArcTarget([]);
+                    }}
+                    clearable
+                    searchable
+                  />
+                  <MultiSelect
+                    label="To"
+                    placeholder="Select target"
+                    data={targetOptions}
+                    value={arcTarget}
+                    onChange={setArcTarget}
+                    disabled={!arcSource}
+                    clearable
+                    searchable
+                  />
+                  <NumberInput label="Weight" min={1} mb="xs" value={arcWeight} onChange={(v) => setArcWeight(Number(v) || 1)} />
+                  <Button variant="default" disabled={!canAddArc} onClick={handleAddArc}>
+                    Add arc
                   </Button>
-                </Card>
+                </Card>      
 
-                <Card withBorder radius="sm" padding="sm">
-                  <Text fw={600} size="sm">
-                    New Transition
+                <Divider />
+
+
+
+                <Text fw={500} size="md">
+                  Selected Element
+                </Text>
+                {selected === null && (
+                  <Text size="sm" c="dimmed">
+                    Click a place, transition, or arc to edit it here.
                   </Text>
-                  <Text size="xs" c="dimmed" mb="xs">
-                    Set the transition label.
-                  </Text>
-                  <TextInput 
-                    label="Label" 
-                    mb="xs" 
-                    value={newTransitionLabel}    
-                    onChange={(e) => setNewTransitionLabel(e.currentTarget.value)} 
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          actionsRef.current?.addTransition(newTransitionLabel)
-                        }
+                )}
+
+                {selected?.type === "place" && (
+                  <>
+                    <NumberInput
+                      label="Tokens"
+                      min={0}
+                      value={selected.tokens}
+                      onChange={(newTokens) => {
+                        const tokens = Number(newTokens);
+                        setSelected({ ...selected, tokens });
+                        actionsRef.current?.updatePlaceTokens(tokens);
                       }}
                     />
-                  <Button variant="default" onClick={() => {actionsRef.current?.addTransition(newTransitionLabel)}}>
-                    Add transition
+                    <NumberInput
+                      label="Final Tokens"
+                      min={0}
+                      value={selected.finalTokens}
+                      onChange={(newFinalTokens) => {
+                        const finalTokens = Number(newFinalTokens);
+                        setSelected({ ...selected, finalTokens });
+                        actionsRef.current?.updatePlaceFinalTokens(finalTokens);
+                      }}
+                    />
+                  </>
+                )}
+                {selected?.type === "transition" && (
+                  <TextInput
+                    label="Label"
+                    value={selected.label}
+                    onChange={(newLabel) => {
+                      const label = newLabel.currentTarget.value;
+                      setSelected({ ...selected, label });
+                      actionsRef.current?.updateTransitionLabel(label);
+                    }}
+                  />
+                )}
+                {selected !== null && (
+                  <>
+                  <Divider/>
+                  <Button color="red" variant="light" onClick={() => {actionsRef.current?.deleteSelected(); setSelected(null)}}>
+                    Delete Element
                   </Button>
-                </Card>
-
-              <Card withBorder radius="sm" padding="sm">
-                <Text fw={600} size="sm">
-                  New Arc
-                </Text>
-                <Text size="xs" c="dimmed" mb="xs">
-                  Set the source and target nodes.
-                  </Text>
-                <Select
-                  label="From"
-                  placeholder="Select source"
-                  data={sourceOptions}
-                  value={arcSource}
-                  onChange={(value) => {
-                    setArcSource(value);
-                    setArcTarget([]);
-                  }}
-                  clearable
-                  searchable
-                />
-                <MultiSelect
-                  label="To"
-                  placeholder="Select target"
-                  data={targetOptions}
-                  value={arcTarget}
-                  onChange={setArcTarget}
-                  disabled={!arcSource}
-                  clearable
-                  searchable
-                />
-                <NumberInput label="Weight" min={1} mb="xs" value={arcWeight} onChange={(v) => setArcWeight(Number(v) || 1)} />
-                <Button variant="default" disabled={!canAddArc} onClick={handleAddArc}>
-                  Add arc
-                </Button>
-              </Card>      
-
-              <Divider />
-
-
-
-              <Text fw={500} size="md">
-                Selected Element
-              </Text>
-              {selected === null && (
-                <Text size="sm" c="dimmed">
-                  Click a place, transition, or arc to edit it here.
-                </Text>
-              )}
-
-              {selected?.type === "place" && (
-                <>
-                  <NumberInput
-                    label="Tokens"
-                    min={0}
-                    value={selected.tokens}
-                    onChange={(newTokens) => {
-                      const tokens = Number(newTokens);
-                      setSelected({ ...selected, tokens });
-                      actionsRef.current?.updatePlaceTokens(tokens);
-                    }}
-                  />
-                  <NumberInput
-                    label="Final Tokens"
-                    min={0}
-                    value={selected.finalTokens}
-                    onChange={(newFinalTokens) => {
-                      const finalTokens = Number(newFinalTokens);
-                      setSelected({ ...selected, finalTokens });
-                      actionsRef.current?.updatePlaceFinalTokens(finalTokens);
-                    }}
-                  />
-                </>
-              )}
-              {selected?.type === "transition" && (
-                <TextInput
-                  label="Label"
-                  value={selected.label}
-                  onChange={(newLabel) => {
-                    const label = newLabel.currentTarget.value;
-                    setSelected({ ...selected, label });
-                    actionsRef.current?.updateTransitionLabel(label);
-                  }}
-                />
-              )}
-              {selected !== null && (
-                <>
-                <Divider/>
-                <Button color="red" variant="light" onClick={() => {actionsRef.current?.deleteSelected(); setSelected(null)}}>
-                  Delete Element
-                </Button>
-                </>
-              )}
+                  </>
+                )}
+              </Stack>
             </Stack>
           </ScrollArea>
         </Splitter.Pane>
