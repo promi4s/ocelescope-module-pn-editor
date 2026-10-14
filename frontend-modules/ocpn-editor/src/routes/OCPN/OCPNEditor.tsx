@@ -149,10 +149,10 @@ const Editor = (
       h={"100%"}
     >
       <Splitter.Pane defaultSize={75} min={"10%"} collapsible>
-        <Stack gap={"sm"} p="xs" h="100%">
+        <Stack gap={5} p="xs" h="100%">
           <Group
-            px="sm"
-            py="xs"
+            px="xs"
+            pb={"xs"}
             wrap="nowrap"
             justify="space-between"
             style={{ borderBottom: "2px solid var(--mantine-color-default-border)" }}
@@ -215,22 +215,22 @@ const Editor = (
 
       <Splitter.Pane defaultSize={25} min={"10%"} collapsible>
         <ScrollArea h="100%" type="auto">
-          <Stack gap="sm" p="md">
+          <Stack gap="xs" p="md">
             <Group
-                px="sm"
-                py="xs"
+                pb="xs"
                 wrap="nowrap"
                 justify="space-between"
                 style={{ borderBottom: "2px solid var(--mantine-color-default-border)" }}
               >
-              <Text fw={600} size="lg">
+              <Text fw={600} size="md">
                 Toolbox
               </Text>
             </Group>
-            <Text fw={600} size="md">
+            <Text fw={600} size="sm">
               Editor Type
             </Text>
             <SegmentedControl
+                size="xs"
                 value={mode}
                 onChange={(v) => onModeChange(v as EditorMode)}
                 data={[
@@ -239,101 +239,105 @@ const Editor = (
 
                 ]}
             />
-            <Text fw={600} size="md">
+            <Text fw={600} size="sm">
               Add Elements
             </Text>
-            <Card withBorder radius="sm" padding="sm">
-              <Text fw={600} size="sm">
-                New Place
-              </Text>
-              <Text size="xs" c="dimmed" mb="xs">
-                Set the object type, initial, and final marking.
-              </Text>
-              <Autocomplete
-                label="Object Type"
-                mb="xs"
-                value={newPlaceObjectType}
-                onChange={setNewPlaceObjectType}
-                data={knownObjectTypes}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddPlace();
-                  }
-                }}
-              />
-              <NumberInput label="Initial Tokens" mb="xs" value={newPlaceTokens} onChange={(v) => setNewPlaceTokens(Number(v)|| 0)}/>
-              <NumberInput label="Final Tokens" mb="xs" value={newPlaceFinalTokens} onChange={(v) => setNewPlaceFinalTokens(Number(v)|| 0)}/>
-              <Button variant="default" disabled={!newPlaceObjectType} onClick={handleAddPlace}>
-                Add Place
-              </Button>
-            </Card>
-            <Card withBorder radius="sm" padding="sm">
+            <Stack gap={0}>
+              <Card withBorder radius="sm" padding="sm">
                 <Text fw={600} size="sm">
-                  New Transition
+                  New Place
                 </Text>
                 <Text size="xs" c="dimmed" mb="xs">
-                  Set the transition label.
+                  Set the object type, initial, and final marking.
                 </Text>
-                <Autocomplete 
-                  label="Transition Label" 
-                  mb="xs" 
-                  value={newTransitionLabel} 
-                  onChange={setNewTransitionLabel} 
-                  data={eventActivities}
+                <Autocomplete
+                  size="xs"
+                  label="Object Type"
+                  mb="xs"
+                  value={newPlaceObjectType}
+                  onChange={setNewPlaceObjectType}
+                  data={knownObjectTypes}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      handleAddTransition();
+                      handleAddPlace();
                     }
                   }}
                 />
-                <Button variant="default" onClick={handleAddTransition}>
-                  Add Transition
-              </Button>
-            </Card>
-            <Card withBorder radius="sm" padding="sm">
-                <Text fw={600} size="sm">
-                  New Arc
-                </Text>
-                <Text size="xs" c="dimmed" mb="xs">
-                  Select the source and target nodes.
-                </Text>
-                <SegmentedControl 
-                  value={variableArcButton ? "variable" : "normal"} 
-                  onChange={(v) => setVariableArcButton(v === "variable")} 
-                  data={[
-                    {label: "Normal", value: "normal"},
-                    {label: "Variable", value: "variable"}
-                  ]}/>            
-                <Stack gap={"xs"} mb="xs">
-                    <Select
-                      label="From"
-                      placeholder="Select source"
-                      data={sourceOptions}
-                      value={arcSource}
-                      onChange={(value) => {
-                        setArcSource(value);
-                        setArcTarget(null);
-                      }}
-                      clearable
-                      searchable
-                    />
-                    <Select
-                      label="To"
-                      placeholder="Select target"
-                      data={targetOptions}
-                      value={arcTarget}
-                      onChange={setArcTarget}
-                      disabled={!arcSource}
-                      clearable
-                      searchable
-                    />
-                </Stack>
-                <Button variant="default" disabled={!canAddArc} onClick={handleAddArc}>
-                  Add Arc
+                <NumberInput size="xs" label="Initial Tokens" mb="xs" value={newPlaceTokens} onChange={(v) => setNewPlaceTokens(Number(v)|| 0)}/>
+                <NumberInput size="xs" label="Final Tokens" mb="xs" value={newPlaceFinalTokens} onChange={(v) => setNewPlaceFinalTokens(Number(v)|| 0)}/>
+                <Button variant="default" disabled={!newPlaceObjectType} onClick={handleAddPlace}>
+                  Add Place
                 </Button>
-            </Card>
+              </Card>
+              <Card withBorder radius="sm" padding="sm">
+                  <Text fw={600} size="sm">
+                    New Transition
+                  </Text>
+                  <Text size="xs" c="dimmed" mb="xs">
+                    Set the transition label.
+                  </Text>
+                  <Autocomplete 
+                    label="Transition Label" 
+                    mb="xs" 
+                    value={newTransitionLabel} 
+                    onChange={setNewTransitionLabel} 
+                    data={eventActivities}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddTransition();
+                      }
+                    }}
+                  />
+                  <Button variant="default" onClick={handleAddTransition}>
+                    Add Transition
+                </Button>
+              </Card>
+              <Card withBorder radius="sm" padding="sm">
+                  <Text fw={600} size="sm">
+                    New Arc
+                  </Text>
+                  <Text size="xs" c="dimmed" mb="xs">
+                    Select the source and target nodes.
+                  </Text>
+                  <SegmentedControl 
+                    size="xs"
+                    value={variableArcButton ? "variable" : "normal"} 
+                    onChange={(v) => setVariableArcButton(v === "variable")} 
+                    data={[
+                      {label: "Normal", value: "normal"},
+                      {label: "Variable", value: "variable"}
+                    ]}/>            
+                  <Stack gap={"xs"} mb="xs">
+                      <Select
+                        label="From"
+                        placeholder="Select source"
+                        data={sourceOptions}
+                        value={arcSource}
+                        onChange={(value) => {
+                          setArcSource(value);
+                          setArcTarget(null);
+                        }}
+                        clearable
+                        searchable
+                      />
+                      <Select
+                        label="To"
+                        placeholder="Select target"
+                        data={targetOptions}
+                        value={arcTarget}
+                        onChange={setArcTarget}
+                        disabled={!arcSource}
+                        clearable
+                        searchable
+                      />
+                  </Stack>
+                  <Button variant="default" disabled={!canAddArc} onClick={handleAddArc}>
+                    Add Arc
+                  </Button>
+              </Card>
+            </Stack>
           </Stack>
         </ScrollArea>
       </Splitter.Pane>
