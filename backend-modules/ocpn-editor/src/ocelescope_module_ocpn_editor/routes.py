@@ -4,7 +4,7 @@ import os
 from r4pm.petri_net import export_pnml, import_pnml
 from fastapi.responses import PlainTextResponse
 from ocelescope_module_ocpn_editor.util.convert_format import convert_to_OCPN, convert_from_OCPN, convert_to_pnet_resource
-from ocelescope_module_ocpn_editor.model.editor_ocpn import OcpnExportRequest, OcpnImportResponse
+from ocelescope_module_ocpn_editor.model.editor_ocpn import Ocpn
 from ocelescope import PetriNet
 from ocelescope_module_ocpn_editor.util.convert_format import convert_from_pnml
 from ocelescope_module_ocpn_editor.model.editor_pn import ImportResponse, ClassicPetriNet
@@ -82,7 +82,7 @@ def save_to_session_classic(session: ApiSession, pnet: dict, name:str):
 # Export/Import
 
 @router.post("/ocpn/export/ocelescope", operation_id="exportOCPN")
-def export_ocpn(ocpn: OcpnExportRequest) -> PlainTextResponse:
+def export_ocpn(ocpn: Ocpn) -> PlainTextResponse:
     pnet = convert_to_OCPN(ocpn)
 
     with tempfile.NamedTemporaryFile(suffix=".ocelescope", delete=False) as tmp:
@@ -99,7 +99,7 @@ def export_ocpn(ocpn: OcpnExportRequest) -> PlainTextResponse:
 
 
 @router.post("/ocpn/import/ocelescope", operation_id="importOCPN")
-async def import_ocpn(file: UploadFile) -> OcpnImportResponse:
+async def import_ocpn(file: UploadFile) -> Ocpn:
     input = await file.read()
     pnet = PetriNet.model_validate_json(input)
     return convert_from_OCPN(pnet)
@@ -109,13 +109,25 @@ async def import_ocpn(file: UploadFile) -> OcpnImportResponse:
 
 
 @router.post("/ocpn/export/session", operation_id="saveSession")
-def save_to_session(session: ApiSession, ocpn: OcpnExportRequest, name:str):
+def save_to_session(session: ApiSession, ocpn: Ocpn, name:str):
     pnet = convert_to_OCPN(ocpn)
     session.add_resource(ResourceStore.from_resource(pnet, name=name))
 
 
 @router.post("/ocpn/import/session", operation_id="loadSession")
-async def load_from_session(session:ApiSession, resource_id: str | None = None) -> OcpnImportResponse:
+async def load_from_session(session:ApiSession, resource_id: str | None = None) -> Ocpn:
     resource_store = cast(PetriNet,session.get_resource(resource_id))
     petri_net = PetriNet(**resource_store.data)
     return convert_from_OCPN(petri_net)
+
+
+# ============================================
+
+#                  Simulation
+
+# ============================================
+
+
+@router.get("/simulation", operation_id="runSimulation")
+def run_simulation(ocpn: Ocpn):
+    pass
