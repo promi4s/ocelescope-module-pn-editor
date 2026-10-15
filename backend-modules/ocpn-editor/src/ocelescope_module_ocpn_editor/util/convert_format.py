@@ -1,10 +1,10 @@
 from ocelescope.resource.default.petri_net import Arc, ArcType, PetriNet, Place, Transition
-from ocelescope_module_ocpn_editor.model.editor_ocpn import OcpnExportRequest, OcpnImportResponse, EditorArc, EditorOCPN, EditorPlace, EditorTransition
-from ocelescope_module_ocpn_editor.model.editor_pn import ImportResponse, ImportPlace,ImportArc,ImportTransition
-from ocelescope_module_ocpn_editor.model.editor_pn import ClassicPetriNet, ClassicArc, ClassicPlace, ClassicTransition
+from ocelescope_module_ocpn_editor.model.editor.editor_ocpn import Ocpn, EditorArc, EditorOCPN, EditorPlace, EditorTransition
+from ocelescope_module_ocpn_editor.model.editor.editor_pn import ImportResponse, ImportPlace,ImportArc,ImportTransition
+from ocelescope_module_ocpn_editor.model.editor.editor_pn import ClassicPetriNet, ClassicArc, ClassicPlace, ClassicTransition
 
 
-def convert_to_OCPN(ocpn: OcpnExportRequest) -> PetriNet:
+def convert_to_OCPN(ocpn: Ocpn) -> PetriNet:
     net = ocpn.petri_net
     object_types = ocpn.place_object_type
     in_out_mult = ocpn.place_in_out_mult if ocpn.place_in_out_mult is not None else {}
@@ -43,7 +43,7 @@ def convert_to_OCPN(ocpn: OcpnExportRequest) -> PetriNet:
     return ocpn
 
 
-def convert_from_OCPN(ocpn:PetriNet) -> OcpnImportResponse:
+def convert_from_OCPN(ocpn:PetriNet) -> Ocpn:
     places = []
     place_object_type = {}
   
@@ -76,7 +76,7 @@ def convert_from_OCPN(ocpn:PetriNet) -> OcpnImportResponse:
             incoming, outgoing = place_in_out_mult[place_id]
             place_in_out_mult[place_id] = ({**incoming, transition_id: True}, outgoing)
 
-    return OcpnImportResponse(
+    return Ocpn(
         petri_net= EditorOCPN(
             places=places,
             transitions=transitions,

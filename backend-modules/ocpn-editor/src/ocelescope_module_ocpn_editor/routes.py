@@ -4,13 +4,14 @@ import os
 from r4pm.petri_net import export_pnml, import_pnml
 from fastapi.responses import PlainTextResponse
 from ocelescope_module_ocpn_editor.util.convert_format import convert_to_OCPN, convert_from_OCPN, convert_to_pnet_resource
-from ocelescope_module_ocpn_editor.model.editor_ocpn import Ocpn
+from ocelescope_module_ocpn_editor.model.editor.editor_ocpn import Ocpn
 from ocelescope import PetriNet
 from ocelescope_module_ocpn_editor.util.convert_format import convert_from_pnml
-from ocelescope_module_ocpn_editor.model.editor_pn import ImportResponse, ClassicPetriNet
+from ocelescope_module_ocpn_editor.model.editor.editor_pn import ImportResponse, ClassicPetriNet
 from ocelescope_backend.app.dependencies import ApiOcel, ApiSession
 from ocelescope_backend.app.internal.model.resource import ResourceStore
 from typing import cast
+from ocelescope_module_ocpn_editor.util.simulation import run_simulation_on_ocpn
 
 router = APIRouter()
 
@@ -130,4 +131,4 @@ async def load_from_session(session:ApiSession, resource_id: str | None = None) 
 
 @router.get("/simulation", operation_id="runSimulation")
 def run_simulation(ocpn: Ocpn):
-    pass
+    run_simulation_on_ocpn(ocpn)

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from ocelescope_backend.app.modules import Module, ModuleMeta
 from packaging.version import Version
 from ocelescope_module_ocpn_editor.routes import router
-from ocelescope_module_ocpn_editor.model.editor_pn import ClassicPetriNet
+from ocelescope_module_ocpn_editor.model.editor.editor_pn import ClassicPetriNet
 
 
 class OCPNEditor(Module):
