@@ -1,5 +1,4 @@
-import {useRef, useEffect } from "react";
-
+import { useRef, useEffect } from "react";
 
 export const HideToolbarButtons = ({ labels }: { labels: string[] }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -26,4 +25,4 @@ export const HideToolbarButtons = ({ labels }: { labels: string[] }) => {
   }, [lowerLabels]);
 
   return <div ref={ref} style={{ display: "none" }} />;
-}
+};

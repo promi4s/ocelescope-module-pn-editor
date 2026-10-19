@@ -1,9 +1,8 @@
 {
 	"name": "@ocelescope/ocpn-editor",
-	"version": "0.10.3",
+	"version": "0.10.4",
 	"description": "An OCPN Editor",
 	"author": "Uy Sa Huynh",
-	"private": true,
 	"type": "module",
 	"repository": {
 		"type": "git",

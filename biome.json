@@ -1,0 +1,11 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+	"vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+	"files": {
+		"includes": ["**", "!**/dist", "!**/.next", "!frontend-modules/*/src/api"]
+	},
+	"formatter": { "indentStyle": "space" },
+	"json": { "formatter": { "indentStyle": "tab" } },
+	"linter": { "enabled": false },
+	"assist": { "enabled": false }
+}

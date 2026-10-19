@@ -16,6 +16,12 @@
 		"dev:app": "pnpm --filter @instance/app dev",
 		"dev:modules": "pnpm -r --parallel --filter \"!@instance/app\" run dev",
 		"docker": "docker compose up --build",
-		"docker:down": "docker compose down"
+		"docker:down": "docker compose down",
+		"format": "biome format --write . && uv run ruff format",
+		"format:check": "biome format . && uv run ruff format --check",
+		"typecheck:backend": "uv run ty check"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.5.15"
 	}
 }

@@ -8,15 +8,16 @@ export const HideToolbarButtons = ({ labels }: { labels: string[] }) => {
     const container = ref.current?.parentElement;
     if (!container) return;
 
-        const hideMatching = () => {
-        const buttons = container.querySelectorAll("button");
-        buttons.forEach((btn) => {
-            const insideRadioGroup = !!btn.closest('[role="radiogroup"]');
-            const text = btn.textContent?.trim().toLowerCase();
-            const shouldHide = !insideRadioGroup && !!text && lowerLabels.includes(text);
-            btn.style.display = shouldHide ? "none" : "";
-        });
-        };
+    const hideMatching = () => {
+      const buttons = container.querySelectorAll("button");
+      buttons.forEach((btn) => {
+        const insideRadioGroup = !!btn.closest('[role="radiogroup"]');
+        const text = btn.textContent?.trim().toLowerCase();
+        const shouldHide =
+          !insideRadioGroup && !!text && lowerLabels.includes(text);
+        btn.style.display = shouldHide ? "none" : "";
+      });
+    };
 
     hideMatching();
     const observer = new MutationObserver(hideMatching);

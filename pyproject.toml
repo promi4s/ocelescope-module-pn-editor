@@ -16,3 +16,12 @@ members = ["backend-modules/*"]
 
 [tool.uv.sources]
 ocelescope-module-ocpn-editor = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "ruff>=0.17.1",
+    "ty>=0.0.89",
+]
+
+[tool.ruff]
+extend-exclude = ["data"]

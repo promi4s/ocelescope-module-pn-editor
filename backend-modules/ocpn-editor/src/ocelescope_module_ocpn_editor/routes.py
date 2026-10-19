@@ -1,26 +1,36 @@
-from fastapi import APIRouter, UploadFile
+from fastapi import APIRouter, HTTPException, UploadFile
 import tempfile
 import os
-from r4pm.petri_net import export_pnml, import_pnml
+from r4pm.petri_net import PetriNet as PnmlPetriNet, export_pnml, import_pnml
 from fastapi.responses import PlainTextResponse
-from ocelescope_module_ocpn_editor.util.convert_format import convert_to_OCPN, convert_from_OCPN, convert_to_pnet_resource
-from ocelescope_module_ocpn_editor.model.editor_ocpn import OcpnExportRequest, OcpnImportResponse
+from ocelescope_module_ocpn_editor.util.convert_format import (
+    convert_to_OCPN,
+    convert_from_OCPN,
+    convert_to_pnet_resource,
+)
+from ocelescope_module_ocpn_editor.model.editor_ocpn import (
+    OcpnExportRequest,
+    OcpnImportResponse,
+)
 from ocelescope import PetriNet
 from ocelescope_module_ocpn_editor.util.convert_format import convert_from_pnml
-from ocelescope_module_ocpn_editor.model.editor_pn import ImportResponse, ClassicPetriNet
+from ocelescope_module_ocpn_editor.model.editor_pn import (
+    ImportResponse,
+    ClassicPetriNet,
+)
 from ocelescope_backend.app.dependencies import ApiOcel, ApiSession
-from ocelescope_backend.app.internal.model.resource import ResourceStore
 from typing import cast
 
 router = APIRouter()
 
+
 @router.get("/{ocel_id}/objects/types", operation_id="objectTypes")
-def get_object_types(ocel:ApiOcel) -> list[str]:
+def get_object_types(ocel: ApiOcel) -> list[str]:
     return ocel.objects.types
 
 
 @router.get("/{ocel_id}/events/activities", operation_id="eventActivities")
-def get_event_activities(ocel:ApiOcel) -> list[str]:
+def get_event_activities(ocel: ApiOcel) -> list[str]:
     return ocel.events.activities
 
 
@@ -33,19 +43,21 @@ def get_event_activities(ocel:ApiOcel) -> list[str]:
 
 # Export/Import
 
+
 @router.post("/petri-net/export/pnml", operation_id="exportPetriNetPnml")
 def export_petri_net_pnml(net: dict) -> PlainTextResponse:
     with tempfile.NamedTemporaryFile(suffix=".pnml", delete=False) as tmp:
         tmp_path = tmp.name
 
     try:
-        export_pnml(net, tmp_path)
+        export_pnml(cast(PnmlPetriNet, net), tmp_path)
         with open(tmp_path, "r", encoding="utf-8") as f:
             pnml_text = f.read()
     finally:
         os.unlink(tmp_path)
 
     return PlainTextResponse(content=pnml_text)
+
 
 @router.post("/petri-net/import/pnml", operation_id="importPetriNetPnml")
 async def import_petri_net_pnml(file: UploadFile) -> ImportResponse:
@@ -62,14 +74,15 @@ async def import_petri_net_pnml(file: UploadFile) -> ImportResponse:
 
     return convert_from_pnml(net)
 
+
 # Load/Save to Session
 
-@router.post("/petri-net/export/session")
-def save_to_session_classic(session: ApiSession, pnet: dict, name:str):
-    resource_pnet = convert_to_pnet_resource(pnet)
-    session.add_resource(ResourceStore.from_resource(resource_pnet, name=name))
-    print(session.list_resources())
 
+@router.post("/petri-net/export/session")
+def save_to_session_classic(session: ApiSession, pnet: dict, name: str):
+    resource_pnet = convert_to_pnet_resource(pnet)
+    session.add_resource(resource_pnet, name=name)
+    print(session.list_resources())
 
 
 # ============================================
@@ -80,6 +93,7 @@ def save_to_session_classic(session: ApiSession, pnet: dict, name:str):
 
 
 # Export/Import
+
 
 @router.post("/ocpn/export/ocelescope", operation_id="exportOCPN")
 def export_ocpn(ocpn: OcpnExportRequest) -> PlainTextResponse:
@@ -109,13 +123,16 @@ async def import_ocpn(file: UploadFile) -> OcpnImportResponse:
 
 
 @router.post("/ocpn/export/session", operation_id="saveSession")
-def save_to_session(session: ApiSession, ocpn: OcpnExportRequest, name:str):
+def save_to_session(session: ApiSession, ocpn: OcpnExportRequest, name: str):
     pnet = convert_to_OCPN(ocpn)
-    session.add_resource(ResourceStore.from_resource(pnet, name=name))
+    session.add_resource(pnet, name=name)
 
 
 @router.post("/ocpn/import/session", operation_id="loadSession")
-async def load_from_session(session:ApiSession, resource_id: str | None = None) -> OcpnImportResponse:
-    resource_store = cast(PetriNet,session.get_resource(resource_id))
-    petri_net = PetriNet(**resource_store.data)
+async def load_from_session(
+    session: ApiSession, resource_id: str | None = None
+) -> OcpnImportResponse:
+    if resource_id is None:
+        raise HTTPException(status_code=400, detail="resource_id is required")
+    petri_net = session.load_resource(resource_id, PetriNet)
     return convert_from_OCPN(petri_net)

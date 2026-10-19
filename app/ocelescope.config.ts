@@ -4,5 +4,5 @@ import ocpnEditorModule from "@ocelescope/ocpn-editor";
 
 // `pnpm run add:frontend` adds local frontend modules here.
 export default {
-	modules: [management, ocpnEditorModule],
+  modules: [management, ocpnEditorModule],
 } satisfies OcelescopeConfig;

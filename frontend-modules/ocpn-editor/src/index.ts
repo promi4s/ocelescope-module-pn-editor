@@ -9,7 +9,6 @@ export const PnEditor = defineModuleRoute({
   requiresOcel: false,
 });
 
-
 export default defineModule({
   name: "ocpnEditor",
   label: "Petri-Net Editor",

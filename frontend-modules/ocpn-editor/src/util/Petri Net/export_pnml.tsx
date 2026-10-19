@@ -1,14 +1,24 @@
 import { type ArcData, type PetriNetNode } from "@r4pm/components/petri";
 import { type Edge } from "@xyflow/react";
 
-
-export const buildPetriNet = (nodes: PetriNetNode[], edges: Edge<ArcData>[]) => {
-  const placeNodes = nodes.filter((n): n is Extract<PetriNetNode, { type: "place" }> => n.type === "place");
-  const transitionNodes = nodes.filter((n): n is Extract<PetriNetNode, { type: "transition" }> => n.type === "transition");
+export const buildPetriNet = (
+  nodes: PetriNetNode[],
+  edges: Edge<ArcData>[],
+) => {
+  const placeNodes = nodes.filter(
+    (n): n is Extract<PetriNetNode, { type: "place" }> => n.type === "place",
+  );
+  const transitionNodes = nodes.filter(
+    (n): n is Extract<PetriNetNode, { type: "transition" }> =>
+      n.type === "transition",
+  );
 
   const placeIds = new Map(placeNodes.map((p) => [p.id, crypto.randomUUID()]));
-  const transitionIds = new Map(transitionNodes.map((t) => [t.id, crypto.randomUUID()]));
-  const nodeId = (editorId: string) => placeIds.get(editorId) ?? transitionIds.get(editorId) ?? editorId;
+  const transitionIds = new Map(
+    transitionNodes.map((t) => [t.id, crypto.randomUUID()]),
+  );
+  const nodeId = (editorId: string) =>
+    placeIds.get(editorId) ?? transitionIds.get(editorId) ?? editorId;
 
   const places = Object.fromEntries(
     placeNodes.map((p) => {
@@ -43,12 +53,20 @@ export const buildPetriNet = (nodes: PetriNetNode[], edges: Edge<ArcData>[]) => 
     places,
     transitions,
     arcs,
-    initial_marking: initialMarkingEntries.length ? Object.fromEntries(initialMarkingEntries) : null,
-    final_markings: finalMarkingEntries.length ? [Object.fromEntries(finalMarkingEntries)] : null,
+    initial_marking: initialMarkingEntries.length
+      ? Object.fromEntries(initialMarkingEntries)
+      : null,
+    final_markings: finalMarkingEntries.length
+      ? [Object.fromEntries(finalMarkingEntries)]
+      : null,
   };
 };
 
-export const downloadFile = (filename: string, content: string, mediaType: string) => {
+export const downloadFile = (
+  filename: string,
+  content: string,
+  mediaType: string,
+) => {
   const blob = new Blob([content], { type: mediaType });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");

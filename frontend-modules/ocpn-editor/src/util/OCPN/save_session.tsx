@@ -8,7 +8,7 @@ export const SaveOCPNSession = ({
 }: {
   opened: boolean;
   onClose: () => void;
-  onSave: (name: string) => void;   
+  onSave: (name: string) => void;
 }) => {
   const [name, setName] = useState("");
   const [saveCount, setSaveCount] = useState(0);
@@ -25,7 +25,7 @@ export const SaveOCPNSession = ({
         />
         <Button
           onClick={() => {
-            onSave(name.trim() || defaultName);  
+            onSave(name.trim() || defaultName);
             setSaveCount((c) => c + 1);
             setName("");
             onClose();

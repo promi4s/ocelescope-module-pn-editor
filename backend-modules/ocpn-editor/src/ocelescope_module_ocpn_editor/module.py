@@ -8,6 +8,7 @@ from ocelescope_module_ocpn_editor.model.editor_pn import ClassicPetriNet
 class OCPNEditor(Module):
     meta = ModuleMeta(key="ocpnEditor", version=Version("1.0"))
     resources = [ClassicPetriNet]
+
     @classmethod
     def create_app(cls) -> FastAPI:
         app = FastAPI(title="OCPN Editor", version=str(cls.meta.version))
