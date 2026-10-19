@@ -1,4 +1,3 @@
-import "@r4pm/components/styles.css";
 import type { ObjectCentricPetriNet } from "@r4pm/components";
 import {
   Box,
