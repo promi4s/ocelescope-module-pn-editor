@@ -5,10 +5,10 @@ description = "An Ocelescope instance: the published backend host plus local mod
 requires-python = ">=3.11"
 # `pnpm run add:backend` adds local backend modules here.
 dependencies = [
-  "ocelescope-backend>=0.8.0",
-  "ocelescope-module-ocel>=0.10.1,<0.11.0",
+  "ocelescope-backend>=0.10.2,<0.11.0",
+  "ocelescope-module-ocel>=0.10.2,<0.11.0",
   "ocelescope-module-ocpn-editor",
-  "ocelescope-module-filter>=0.10.1,<0.11.0,"
+  "ocelescope-module-filter>=0.10.2,<0.11.0"
 ]
 
 [tool.uv.workspace]
