@@ -349,6 +349,12 @@ const Editor = ({
                     mb="xs"
                     value={newPlaceTokens}
                     onChange={(v) => setNewPlaceTokens(Number(v) || 0)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddPlace();
+                      }
+                    }}
                   />
                   <NumberInput
                     size="sm"
@@ -356,6 +362,12 @@ const Editor = ({
                     mb="xs"
                     value={newPlaceFinalTokens}
                     onChange={(v) => setNewPlaceFinalTokens(Number(v) || 0)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddPlace();
+                      }
+                    }}
                   />
                   <Button
                     variant="default"

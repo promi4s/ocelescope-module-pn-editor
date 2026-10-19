@@ -1,6 +1,6 @@
 [project]
 name = "ocelescope-module-ocpn-editor"
-version = "0.10.4"
+version = "0.10.5"
 readme = "README.md"
 description = "An OCPN Editor"
 authors = [{ name = "Uy Sa Huynh" }]
