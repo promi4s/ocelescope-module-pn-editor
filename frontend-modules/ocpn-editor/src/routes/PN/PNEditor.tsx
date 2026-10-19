@@ -119,13 +119,13 @@ return (
                   style={{ display: "none" }}
                   onChange={handleFileSelected}
                 />
-                <Tooltip label="Load from session" withArrow>
+                {/* <Tooltip label="Load from session" withArrow>
                   <ActionIcon variant="subtle" color="gray" size="md" aria-label="load from session">
                     <DatabaseArrowUp size={16} />
                   </ActionIcon>
                 </Tooltip>
 
-                <Divider orientation="vertical" />
+                <Divider orientation="vertical" /> */}
 
                 <Tooltip label="Save to session" withArrow>
                   <ActionIcon
