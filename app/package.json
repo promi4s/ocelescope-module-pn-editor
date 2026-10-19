@@ -10,7 +10,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@instance/ocpn-editor": "workspace:*",
+		"@ocelescope/ocpn-editor": "workspace:*",
 		"@ocelescope/core": "catalog:",
 		"@ocelescope/management": "catalog:",
 		"next": "catalog:",

@@ -21,7 +21,7 @@
       "@/*": [
         "./*"
       ],
-      "@instance/ocpn-editor": [
+      "@ocelescope/ocpn-editor": [
         "../frontend-modules/ocpn-editor/src/index.ts"
       ]
     }
