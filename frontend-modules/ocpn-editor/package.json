@@ -5,6 +5,10 @@
 	"author": "Uy Sa Huynh",
 	"private": true,
 	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/promi4s/ocelescope-module-pn-editor"
+	},
 	"exports": {
 		".": "./dist/index.js",
 		"./package.json": "./package.json"
@@ -34,13 +38,12 @@
 		"@mantine/core": "^9.4.0",
 		"@xyflow/react": "^12.10.1",
 		"@mantine/notifications": "^9.7.1"
-		
 	},
 	"devDependencies": {
 		"@ocelescope/api-client": "catalog:",
 		"@ocelescope/api-config": "catalog:",
 		"@ocelescope/core": "catalog:",
-  		"@ocelescope/resources": "catalog:",
+		"@ocelescope/resources": "catalog:",
 		"@tanstack/react-query": "catalog:",
 		"@types/react": "catalog:",
 		"axios": "catalog:",
