@@ -157,7 +157,7 @@ const PetriNetEditor = ({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".ocelescope"
+                  accept=".pnml"
                   style={{ display: "none" }}
                   onChange={handleFileSelected}
                 />
