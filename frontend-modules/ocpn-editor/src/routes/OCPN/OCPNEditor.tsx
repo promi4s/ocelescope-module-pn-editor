@@ -1,6 +1,7 @@
 import "@r4pm/components/styles.css";
 import type { ObjectCentricPetriNet } from "@r4pm/components";
-import { Box, Button, Stack, Text, Splitter, ScrollArea, Group, Card, TextInput, NumberInput, SegmentedControl, Select, Autocomplete, ActionIcon,Tooltip,Divider } from "@mantine/core";
+import { Box, Button, Stack, Text, Splitter, ScrollArea, Group, Card, NumberInput, SegmentedControl, Select, Autocomplete, ActionIcon,Tooltip,Divider, Table } from "@mantine/core";
+import { isAxiosError } from "axios";
 import { DownloadIcon, PlayIcon, Upload, DatabaseArrowUp, DatabaseArrowDown } from "lucide-react";
 import { lazy, useEffect, useState } from "react";
 import type { UseSplitterReturnValue } from "@mantine/hooks";
@@ -8,7 +9,7 @@ import { addPlace, addTransition, addArc} from "../../util/OCPN/editor_functions
 import { SaveOCPNSession } from "../../util/OCPN/save_session";
 import { useRef, useCallback } from "react";
 import { EditorMode } from "../main";
-import { useExportOCPN, useImportOCPN, useLoadSession, useSaveSession } from "../../api/ocpnEditor";
+import { useExportOCPN, useImportOCPN, useLoadSession, useSaveSession, useRunSimulation, type SimulationResult } from "../../api/ocpnEditor";
 import { downloadFile } from "../../util/Petri Net/export_pnml";
 import { notifications } from "@mantine/notifications";
 import { LoadOCPNSession } from "../../util/OCPN/load_session";
@@ -55,6 +56,11 @@ const Editor = (
   const [loadModalOpened, setLoadModalOpened] = useState(false);
 
 
+  const [simulationMode, setSimulationMode] = useState(false);
+  const [simulationDuration, setSimulationDuration] = useState(500);
+  const [simulationDelay, setSimulationDelay] = useState(1);
+  const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
+
 
   const netUpdateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -64,6 +70,7 @@ const Editor = (
   const { mutateAsync: importOcpn } = useImportOCPN();
   const { mutateAsync: saveSession} = useSaveSession();
   const { mutateAsync: loadSession } = useLoadSession();
+  const { mutateAsync: runSimulation, isPending: simulationRunning } = useRunSimulation()
 
 
   const handleDownload = async () => {
@@ -115,6 +122,23 @@ const Editor = (
   const handleRunLayout = () => {
   setSeedNet(net);
   setRemountKey((k) => k + 1);
+  };
+
+  const handleRunSimulation = async () => {
+    try {
+      const result = await runSimulation({
+        data: net,
+        params: { duration: simulationDuration, delay: simulationDelay },
+      });
+      setSimulationResult(result);
+    } catch (error) {
+      const detail = isAxiosError(error) ? error.response?.data?.detail : undefined;
+      notifications.show({
+        title: "Simulation failed",
+        message: typeof detail === "string" ? detail : "The simulation could not be run.",
+        color: "red",
+      });
+    }
   };
 
   const handleNetChange = useCallback((updatedNet: ObjectCentricPetriNet) => {
@@ -213,120 +237,175 @@ const Editor = (
           </Box>
         </Stack>
       </Splitter.Pane>
-
+      
       <Splitter.Pane defaultSize={25} min={"10%"} collapsible>
         <ScrollArea h="100%" type="auto">
-          <Stack gap="xs" p="md">
-            <Text fw={600} size="sm">
-              Editor Type
-            </Text>
-            <SegmentedControl
-                size="xs"
-                value={mode}
-                onChange={(v) => onModeChange(v as EditorMode)}
-                data={[
-                  { label: "Object-Centric", value: "ocpn" },
-                  { label: "Classic", value: "classic" }
+          <Group justify="center" mt={"xs"}>
+            <Button
+            onClick={() => setSimulationMode((m) => !m)}
+            >
+              {simulationMode ? "Switch to editor" : "Switch to simulation"}
+            </Button>
+          </Group>
 
-                ]}
-            />
-            <Stack gap={0} pt={"xs"}>
+          {!simulationMode?(
+            <Stack gap="xs" p="md">
+                <Text fw={600} size="sm">
+                  Editor Type
+                </Text>
+                <SegmentedControl
+                    size="xs"
+                    value={mode}
+                    onChange={(v) => onModeChange(v as EditorMode)}
+                    data={[
+                      { label: "Object-Centric", value: "ocpn" },
+                      { label: "Classic", value: "classic" }
+
+                    ]}
+                />
+                <Stack gap={0} pt={"xs"}>
+                  <Card withBorder radius="sm" padding="sm">
+                    <Text fw={600} size="sm">
+                      New Place
+                    </Text>
+                    <Text size="xs" c="dimmed" mb="xs">
+                      Set the object type, initial, and final marking.
+                    </Text>
+                    <Autocomplete
+                      size="sm"
+                      label="Object Type"
+                      mb="xs"
+                      value={newPlaceObjectType}
+                      onChange={setNewPlaceObjectType}
+                      data={knownObjectTypes}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddPlace();
+                        }
+                      }}
+                    />
+                    <NumberInput size="sm" label="Initial Tokens" mb="xs" value={newPlaceTokens} onChange={(v) => setNewPlaceTokens(Number(v)|| 0)}/>
+                    <NumberInput size="sm" label="Final Tokens" mb="xs" value={newPlaceFinalTokens} onChange={(v) => setNewPlaceFinalTokens(Number(v)|| 0)}/>
+                    <Button variant="default" disabled={!newPlaceObjectType} onClick={handleAddPlace}>
+                      Add Place
+                    </Button>
+                  </Card>
+                  <Card withBorder radius="sm" padding="sm">
+                      <Text fw={600} size="sm">
+                        New Transition
+                      </Text>
+                      <Text size="xs" c="dimmed" mb="xs">
+                        Set the transition label.
+                      </Text>
+                      <Autocomplete 
+                        label="Transition Label" 
+                        mb="xs" 
+                        value={newTransitionLabel} 
+                        onChange={setNewTransitionLabel} 
+                        data={eventActivities}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddTransition();
+                          }
+                        }}
+                      />
+                      <Button variant="default" onClick={handleAddTransition}>
+                        Add Transition
+                    </Button>
+                  </Card>
+                  <Card withBorder radius="sm" padding="sm">
+                      <Text fw={600} size="sm">
+                        New Arc
+                      </Text>
+                      <Text size="xs" c="dimmed" mb="xs">
+                        Select the source and target nodes.
+                      </Text>
+                      <SegmentedControl 
+                        size="xs"
+                        value={variableArcButton ? "variable" : "normal"} 
+                        onChange={(v) => setVariableArcButton(v === "variable")} 
+                        data={[
+                          {label: "Normal", value: "normal"},
+                          {label: "Variable", value: "variable"}
+                        ]}/>            
+                      <Stack gap={"xs"} mb="xs">
+                          <Select
+                            label="From"
+                            placeholder="Select source"
+                            data={sourceOptions}
+                            value={arcSource}
+                            onChange={(value) => {
+                              setArcSource(value);
+                              setArcTarget(null);
+                            }}
+                            clearable
+                            searchable
+                          />
+                          <Select
+                            label="To"
+                            placeholder="Select target"
+                            data={targetOptions}
+                            value={arcTarget}
+                            onChange={setArcTarget}
+                            disabled={!arcSource}
+                            clearable
+                            searchable
+                          />
+                      </Stack>
+                      <Button variant="default" disabled={!canAddArc} onClick={handleAddArc}>
+                        Add Arc
+                      </Button>
+                  </Card>
+                </Stack>
+              </Stack>
+          ): (
+            <Stack gap="xs" p="md">
               <Card withBorder radius="sm" padding="sm">
                 <Text fw={600} size="sm">
-                  New Place
+                  Simulation Settings
                 </Text>
                 <Text size="xs" c="dimmed" mb="xs">
-                  Set the object type, initial, and final marking.
+                  Simulates the current net from its initial marking.
                 </Text>
-                <Autocomplete
-                  size="sm"
-                  label="Object Type"
-                  mb="xs"
-                  value={newPlaceObjectType}
-                  onChange={setNewPlaceObjectType}
-                  data={knownObjectTypes}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddPlace();
-                    }
-                  }}
-                />
-                <NumberInput size="sm" label="Initial Tokens" mb="xs" value={newPlaceTokens} onChange={(v) => setNewPlaceTokens(Number(v)|| 0)}/>
-                <NumberInput size="sm" label="Final Tokens" mb="xs" value={newPlaceFinalTokens} onChange={(v) => setNewPlaceFinalTokens(Number(v)|| 0)}/>
-                <Button variant="default" disabled={!newPlaceObjectType} onClick={handleAddPlace}>
-                  Add Place
-                </Button>
-              </Card>
-              <Card withBorder radius="sm" padding="sm">
-                  <Text fw={600} size="sm">
-                    New Transition
-                  </Text>
-                  <Text size="xs" c="dimmed" mb="xs">
-                    Set the transition label.
-                  </Text>
-                  <Autocomplete 
-                    label="Transition Label" 
-                    mb="xs" 
-                    value={newTransitionLabel} 
-                    onChange={setNewTransitionLabel} 
-                    data={eventActivities}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddTransition();
-                      }
-                    }}
-                  />
-                  <Button variant="default" onClick={handleAddTransition}>
-                    Add Transition
-                </Button>
-              </Card>
-              <Card withBorder radius="sm" padding="sm">
-                  <Text fw={600} size="sm">
-                    New Arc
-                  </Text>
-                  <Text size="xs" c="dimmed" mb="xs">
-                    Select the source and target nodes.
-                  </Text>
-                  <SegmentedControl 
-                    size="xs"
-                    value={variableArcButton ? "variable" : "normal"} 
-                    onChange={(v) => setVariableArcButton(v === "variable")} 
-                    data={[
-                      {label: "Normal", value: "normal"},
-                      {label: "Variable", value: "variable"}
-                    ]}/>            
-                  <Stack gap={"xs"} mb="xs">
-                      <Select
-                        label="From"
-                        placeholder="Select source"
-                        data={sourceOptions}
-                        value={arcSource}
-                        onChange={(value) => {
-                          setArcSource(value);
-                          setArcTarget(null);
-                        }}
-                        clearable
-                        searchable
-                      />
-                      <Select
-                        label="To"
-                        placeholder="Select target"
-                        data={targetOptions}
-                        value={arcTarget}
-                        onChange={setArcTarget}
-                        disabled={!arcSource}
-                        clearable
-                        searchable
-                      />
-                  </Stack>
-                  <Button variant="default" disabled={!canAddArc} onClick={handleAddArc}>
-                    Add Arc
+                <NumberInput size="sm" label="Duration" mb="xs" min={0} value={simulationDuration} onChange={(v) => setSimulationDuration(Number(v) || 0)}/>
+                <NumberInput size="sm" label="Delay per transition" mb="xs" min={0} value={simulationDelay} onChange={(v) => setSimulationDelay(Number(v) || 0)}/>
+                <Group justify="center">
+                  <Button onClick={handleRunSimulation} loading={simulationRunning}>
+                    Run Simulation
                   </Button>
+                </Group>
               </Card>
+
+              {simulationResult && (
+                  <Card withBorder radius="sm" padding="sm">
+                    <Text fw={600} size="sm" mb="xs">
+                      Events
+                    </Text>
+                    <Table striped withTableBorder fz="xs">
+                      <Table.Thead>
+                        <Table.Tr>
+                          <Table.Th>Time</Table.Th>
+                          <Table.Th>Activity</Table.Th>
+                          <Table.Th>Objects</Table.Th>
+                        </Table.Tr>
+                      </Table.Thead>
+                      <Table.Tbody>
+                        {simulationResult.events.map((event) => (
+                          <Table.Tr key={event.id}>
+                            <Table.Td>{event.timestamp}</Table.Td>
+                            <Table.Td>{event.activity}</Table.Td>
+                            <Table.Td>{Object.values(event.objects).flat().join(", ")}</Table.Td>
+                          </Table.Tr>
+                        ))}
+                      </Table.Tbody>
+                    </Table>
+                  </Card>
+              )}
             </Stack>
-          </Stack>
+          )}
+ 
         </ScrollArea>
       </Splitter.Pane>
     </Splitter>

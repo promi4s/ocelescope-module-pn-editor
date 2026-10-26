@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile
+from fastapi import APIRouter, HTTPException, UploadFile
 import tempfile
 import os
 from r4pm.petri_net import export_pnml, import_pnml
@@ -11,7 +11,8 @@ from ocelescope_module_ocpn_editor.model.editor.editor_pn import ImportResponse,
 from ocelescope_backend.app.dependencies import ApiOcel, ApiSession
 from ocelescope_backend.app.internal.model.resource import ResourceStore
 from typing import cast
-from ocelescope_module_ocpn_editor.util.simulation import run_simulation_on_ocpn
+from ocelescope_module_ocpn_editor.util.simulation import run_simulation
+from ocelescope_module_ocpn_editor.model.simulation.simulation_result import SimulationResult
 
 router = APIRouter()
 
@@ -129,6 +130,7 @@ async def load_from_session(session:ApiSession, resource_id: str | None = None) 
 # ============================================
 
 
-@router.get("/simulation", operation_id="runSimulation")
-def run_simulation(ocpn: Ocpn):
-    run_simulation_on_ocpn(ocpn)
+@router.post("/simulation", operation_id="runSimulation")
+def simulate_ocpn(ocpn: Ocpn, duration: float = 500, delay: float = 1) -> SimulationResult:
+    model = run_simulation(ocpn, duration=duration, delay=delay)
+    return model
