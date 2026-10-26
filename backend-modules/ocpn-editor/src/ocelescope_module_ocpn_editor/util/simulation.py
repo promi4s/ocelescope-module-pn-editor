@@ -201,15 +201,17 @@ def build_simulation(ocpn: Ocpn, delay: float = 1) -> SimProblem:
         if not incoming_places:
             raise ValueError(f"Transition '{names[t.id]}' has no input places; SimPN cannot simulate source transitions.")
 
-        OCPNEvent(
+        silent = not t.label
+        event = OCPNEvent(
             model,
             incoming_places,
             outgoing_places,
             name=names[t.id],
             guard=default_guard(incoming_places),
-            behavior=default_behavior(incoming_places, outgoing_places, factory, delay),
+            behavior=default_behavior(incoming_places, outgoing_places, factory, 0 if silent else delay),
             selection=default_selection(incoming_places),
         )
+        event.silent = silent
 
     return model
 
@@ -224,6 +226,7 @@ def run_simulation(ocpn: Ocpn, duration: float = 500, delay: float = 1) -> Simul
             id=str(row["event_id"]),
             activity=str(row["activity"]),
             timestamp=float(row["timestamp"]),
+            silent=row["activity"].silent,
             objects={
                 object_type: [f"{object_type}-{oid}" for oid in dict.fromkeys(row[object_type])]
                 for object_type in reporter.object_types
@@ -232,8 +235,12 @@ def run_simulation(ocpn: Ocpn, duration: float = 500, delay: float = 1) -> Simul
         )
         for _, row in reporter.ocel_df.iterrows()
     ]
+
+    reporter.ocel_df = reporter.ocel_df[~reporter.ocel_df["activity"].map(lambda event: event.silent)]
+
     return SimulationResult(
         events=events,
         final_marking={p.get_id(): len(p.marking) for p in model.places},
         end_time=float(model.clock),
+        ocel=reporter.to_ocel20(),
     )

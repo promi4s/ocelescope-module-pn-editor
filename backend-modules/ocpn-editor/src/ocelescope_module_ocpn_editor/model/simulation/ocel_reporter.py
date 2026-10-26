@@ -176,6 +176,12 @@ class OCELReporter(Reporter):
         Export to OCEL 2.0 JSON format.
         Compatible with ocel-standard.org and tools supporting OCEL 2.0.
         """
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(self.to_ocel20(), f, indent=2)
+        print(f"OCEL 2.0 saved to {path}")
+
+    def to_ocel20(self) -> dict:
+        """Build the OCEL 2.0 JSON structure without writing it to a file."""
         events, objects_raw = self._build_ocel_structures()
 
         event_types: dict[str, dict] = {}
@@ -219,14 +225,10 @@ class OCELReporter(Reporter):
                 "relationships": [],
             })
 
-        ocel20 = {
+        return {
             "eventTypes": list(event_types.values()),
             "objectTypes": list(object_types.values()),
             "events": ocel20_events,
             "objects": ocel20_objects,
         }
-
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(ocel20, f, indent=2)
-        print(f"OCEL 2.0 saved to {path}")
         

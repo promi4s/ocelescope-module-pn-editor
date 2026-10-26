@@ -141,6 +141,11 @@ const Editor = (
     }
   };
 
+  const handleDownloadLog = () => {
+    if (!simulationResult) return;
+    downloadFile("simulated_log.json", JSON.stringify(simulationResult.ocel, null, 2), "application/json");
+  };
+
   const handleNetChange = useCallback((updatedNet: ObjectCentricPetriNet) => {
     if (netUpdateTimer.current) clearTimeout(netUpdateTimer.current);
     netUpdateTimer.current = setTimeout(() => {
@@ -375,6 +380,9 @@ const Editor = (
                   <Button onClick={handleRunSimulation} loading={simulationRunning}>
                     Run Simulation
                   </Button>
+                  <Button variant="default" leftSection={<DownloadIcon size={16} />} disabled={!simulationResult} onClick={handleDownloadLog}>
+                    Download Log
+                  </Button>
                 </Group>
               </Card>
 
@@ -393,7 +401,7 @@ const Editor = (
                       </Table.Thead>
                       <Table.Tbody>
                         {simulationResult.events.map((event) => (
-                          <Table.Tr key={event.id}>
+                          <Table.Tr key={event.id} c={event.silent ? "dimmed" : undefined}>
                             <Table.Td>{event.timestamp}</Table.Td>
                             <Table.Td>{event.activity}</Table.Td>
                             <Table.Td>{Object.values(event.objects).flat().join(", ")}</Table.Td>
