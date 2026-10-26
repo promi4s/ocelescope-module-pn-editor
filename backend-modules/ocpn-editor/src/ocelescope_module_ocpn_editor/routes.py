@@ -70,7 +70,7 @@ async def import_petri_net_pnml(file: UploadFile) -> ImportResponse:
 def save_to_session_classic(session: ApiSession, pnet: dict, name:str):
     resource_pnet = convert_to_pnet_resource(pnet)
     session.add_resource(ResourceStore.from_resource(resource_pnet, name=name))
-    print(session.list_resources())
+
 
 
 
