@@ -400,7 +400,7 @@ const Editor = (
                       <Table.Tbody>
                         {simulationResult.events.map((event) => (
                           <Table.Tr key={event.id} c={event.silent ? "dimmed" : undefined}>
-                            <Table.Td>{Number(event.timestamp.toFixed(2))}</Table.Td>
+                            <Table.Td>{new Date(event.timestamp).toLocaleString()}</Table.Td>
                             <Table.Td>{event.activity}</Table.Td>
                             <Table.Td>{Object.values(event.objects).flat().join(", ")}</Table.Td>
                           </Table.Tr>

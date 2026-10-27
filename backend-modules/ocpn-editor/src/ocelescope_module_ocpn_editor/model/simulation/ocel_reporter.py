@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import json
+from collections.abc import Callable
 from typing import Any
 import pandas as pd
 from simpn.simulator import SimProblem
@@ -19,11 +20,9 @@ def _serialize_attr(value: Any) -> Any:
     return value
 
 
-def _timestamp_to_iso(timestamp: float) -> str:
-    """Convert simulation timestamp to ISO 8601 format."""
-    base = datetime(1970, 1, 1)
-    dt = base + timedelta(seconds=float(timestamp))
-    return dt.strftime("%Y-%m-%dT%H:%M:%S")
+def _seconds_since_epoch(timestamp: float) -> datetime:
+    """Default conversion: simulation time counted as seconds since 1970-01-01."""
+    return datetime(1970, 1, 1) + timedelta(seconds=float(timestamp))
 
 class OCELReporter(Reporter):
     """
@@ -36,9 +35,9 @@ class OCELReporter(Reporter):
     - omap: the mapping of object types to set of object ids involved in the transition
     - vmap: mapping of object types to set of object attribute dictionaries (one per oid)
     """
-    def __init__(self, model):
-
+    def __init__(self, model, to_datetime: Callable[[float], datetime] = _seconds_since_epoch):
         self.model = model
+        self.to_datetime = to_datetime
         self.header = ["event_id", "activity", "timestamp"]
         self.event_id = 20260200
         self.object_types = []
@@ -98,7 +97,7 @@ class OCELReporter(Reporter):
             eid = row["event_id"]
             activity = row["activity"]
             timestamp = row["timestamp"]
-            ts_iso = _timestamp_to_iso(timestamp)
+            ts_iso = self.to_datetime(timestamp).isoformat(timespec="seconds")
             flat_omap: list[str] = []
 
             for ot in self.object_types:

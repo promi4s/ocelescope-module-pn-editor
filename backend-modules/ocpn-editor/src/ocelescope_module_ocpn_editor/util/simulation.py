@@ -231,14 +231,14 @@ def build_simulation(ocpn: Ocpn, config: SimulationConfig) -> SimProblem:
 def run_simulation(ocpn: Ocpn, config: SimulationConfig | None = None) -> SimulationResult:
     config = config or SimulationConfig()
     model = build_simulation(ocpn, config)
-    reporter = OCELReporter(model)
+    reporter = OCELReporter(model, to_datetime=config.to_datetime)
     model.simulate(config.duration, reporter)
 
     events = [
         SimulatedEvent(
             id=str(row["event_id"]),
             activity=str(row["activity"]),
-            timestamp=float(row["timestamp"]),
+            timestamp=config.to_datetime(float(row["timestamp"])),
             silent=row["activity"].silent,
             objects={
                 object_type: [f"{object_type}-{oid}" for oid in dict.fromkeys(row[object_type])]
@@ -254,6 +254,6 @@ def run_simulation(ocpn: Ocpn, config: SimulationConfig | None = None) -> Simula
     return SimulationResult(
         events=events,
         final_marking={p.get_id(): len(p.marking) for p in model.places},
-        end_time=float(model.clock),
+        end_time=config.to_datetime(float(model.clock)),
         ocel=reporter.to_ocel20(),
     )
