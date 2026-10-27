@@ -33,6 +33,10 @@ def get_object_types(ocel: ApiOcel) -> list[str]:
 def get_event_activities(ocel: ApiOcel) -> list[str]:
     return ocel.events.activities
 
+@router.get("/ocpn/schemaHash", operation_id="ocpnSchemaHash")
+def get_ocpn_schema_hash() -> str:
+    return PetriNet.get_schema_hash()
+
 
 # ============================================
 
