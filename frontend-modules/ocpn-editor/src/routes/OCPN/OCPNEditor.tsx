@@ -8,11 +8,12 @@ import type { UseSplitterReturnValue } from "@mantine/hooks";
 import { addPlace, addTransition, addArc} from "../../util/OCPN/editor_functions";
 import { SaveOCPNSession } from "../../util/OCPN/save_session";
 import { useRef, useCallback } from "react";
-import { EditorMode } from "../main";
-import { useExportOCPN, useImportOCPN, useLoadSession, useSaveSession, useRunSimulation, type SimulationResult } from "../../api/ocpnEditor";
+import type { EditorMode } from "../main";
+import { useExportOCPN, useImportOCPN, useLoadSession, useSaveSession, useRunSimulation, type SimulationResult, type SimulationConfig } from "../../api/ocpnEditor";
 import { downloadFile } from "../../util/Petri Net/export_pnml";
 import { notifications } from "@mantine/notifications";
 import { LoadOCPNSession } from "../../util/OCPN/load_session";
+import { SimulationSettings, defaultSimulationConfig } from "../../util/OCPN/simulation_settings";
 
 
 const OcpnEditorPanel = lazy(() => import("./OcpnEditorPanel"));
@@ -57,8 +58,8 @@ const Editor = (
 
 
   const [simulationMode, setSimulationMode] = useState(false);
-  const [simulationDuration, setSimulationDuration] = useState(500);
-  const [simulationDelay, setSimulationDelay] = useState(1);
+  const [simulationConfig, setSimulationConfig] = useState<SimulationConfig>(defaultSimulationConfig);
+  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
 
 
@@ -127,8 +128,7 @@ const Editor = (
   const handleRunSimulation = async () => {
     try {
       const result = await runSimulation({
-        data: net,
-        params: { duration: simulationDuration, delay: simulationDelay },
+        data: { ocpn: net, config: simulationConfig },
       });
       setSimulationResult(result);
     } catch (error) {
@@ -238,7 +238,7 @@ const Editor = (
             </Group>
           </Group>
           <Box pos="relative" style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
-            <OcpnEditorPanel key={remountKey} data={seedNet} onNetChange={handleNetChange} />
+            <OcpnEditorPanel key={remountKey} data={seedNet} onNetChange={handleNetChange} onSelectionChange={setSelectedNodeIds} />
           </Box>
         </Stack>
       </Splitter.Pane>
@@ -372,10 +372,8 @@ const Editor = (
                   Simulation Settings
                 </Text>
                 <Text size="xs" c="dimmed" mb="xs">
-                  Simulates the current net from its initial marking.
+                  Simulates the current net from its initial marking. 
                 </Text>
-                <NumberInput size="sm" label="Duration" mb="xs" min={0} value={simulationDuration} onChange={(v) => setSimulationDuration(Number(v) || 0)}/>
-                <NumberInput size="sm" label="Delay per transition" mb="xs" min={0} value={simulationDelay} onChange={(v) => setSimulationDelay(Number(v) || 0)}/>
                 <Group justify="center">
                   <Button onClick={handleRunSimulation} loading={simulationRunning}>
                     Run Simulation
@@ -402,7 +400,7 @@ const Editor = (
                       <Table.Tbody>
                         {simulationResult.events.map((event) => (
                           <Table.Tr key={event.id} c={event.silent ? "dimmed" : undefined}>
-                            <Table.Td>{event.timestamp}</Table.Td>
+                            <Table.Td>{Number(event.timestamp.toFixed(2))}</Table.Td>
                             <Table.Td>{event.activity}</Table.Td>
                             <Table.Td>{Object.values(event.objects).flat().join(", ")}</Table.Td>
                           </Table.Tr>
@@ -411,6 +409,14 @@ const Editor = (
                     </Table>
                   </Card>
               )}
+
+              <SimulationSettings
+                net={net}
+                config={simulationConfig}
+                onChange={setSimulationConfig}
+                selectedTransition={selectedNodeIds.find((id) => net.petri_net.transitions.some((t) => t.id === id)) ?? null}
+                disabled={simulationRunning}
+              />
             </Stack>
           )}
  

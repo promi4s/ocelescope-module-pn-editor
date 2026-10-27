@@ -1,9 +1,12 @@
 import inspect
+import random
+from collections.abc import Callable
 from itertools import count
 from simpn.simulator import SimProblem, SimToken
 from ocelescope_module_ocpn_editor.model.simulation.simulation_ocpn import OCPNVar, OCPNEvent
 from ocelescope_module_ocpn_editor.model.simulation.ocel_reporter import OCELReporter
 from ocelescope_module_ocpn_editor.model.simulation.simulation_result import SimulatedEvent, SimulationResult
+from ocelescope_module_ocpn_editor.model.simulation.simulation_config import DelayConfig, SimulationConfig
 from ocelescope_module_ocpn_editor.model.editor.editor_ocpn import Ocpn
 
 
@@ -112,19 +115,20 @@ def default_behavior(
     incoming_vars: list[tuple[OCPNVar, bool]],
     outgoing_vars: list[tuple[OCPNVar, bool]],
     factory: ObjectIdCounter,
-    delay: float,
+    sample_delay: Callable[[], float],
 ):
     """
-    Token flow without user behavior:
     - objects consumed of type T are produced in every output place of type T,
     - an output type with no input of that type creates one new object,
-      which is linked to all consumed and other created objects,
+      which is linked to all consumed and other created objects of other types,
     - an input type with no output of that type ends its objects,
-    - variable input arcs consume all selected tokens; the rest is returned by OCPNEvent.
+    - variable input arcs consume all selected tokens; the rest is returned by OCPNEvent,
+    - all produced tokens get the same sampled delay (the duration of this firing).
     """
-    num_return_arcs = sum(1 for _, variable in incoming_vars if variable)
+    num_variable_input_arcs = sum(1 for _, variable in incoming_vars if variable)
 
     def behavior(*args):
+        delay = sample_delay()
         consumed: dict[str, dict] = {}
         for (var, variable), arg in zip(incoming_vars, args):
             objects = [token.value for token in arg] if variable else [arg]
@@ -151,9 +155,10 @@ def default_behavior(
         consumed_objects = [obj for by_id in consumed.values() for obj in by_id.values()]
         for i, new in enumerate(created):
             for other in consumed_objects + created[i + 1:]:
-                link(new, other)
+                if other["object_type"] != new["object_type"]:
+                    link(new, other)
 
-        result.extend([] for _ in range(num_return_arcs))
+        result.extend([] for _ in range(num_variable_input_arcs))
         return result
 
     return behavior
@@ -171,10 +176,11 @@ def event_names(ocpn: Ocpn) -> dict[str, str]:
             id_transitionLabel[t.id] = f"{t.label}_{t.id}"
     return id_transitionLabel
 
-
-def build_simulation(ocpn: Ocpn, delay: float = 1) -> SimProblem:
+def build_simulation(ocpn: Ocpn, config: SimulationConfig) -> SimProblem:
+    config = config
     net = ocpn.petri_net
-    model = SimProblem()
+    rng = random.Random(config.seed)
+    model = SimProblem(binding_priority=lambda bindings: rng.choice(bindings))
     factory = ObjectIdCounter()
 
     place_ids = {p.id for p in net.places}
@@ -202,13 +208,19 @@ def build_simulation(ocpn: Ocpn, delay: float = 1) -> SimProblem:
             raise ValueError(f"Transition '{names[t.id]}' has no input places; SimPN cannot simulate source transitions.")
 
         silent = not t.label
+        delay_config = config.delays.get(t.id) or (DelayConfig(value=0) if silent else config.default_delay)
         event = OCPNEvent(
             model,
             incoming_places,
             outgoing_places,
             name=names[t.id],
             guard=default_guard(incoming_places),
-            behavior=default_behavior(incoming_places, outgoing_places, factory, 0 if silent else delay),
+            behavior=default_behavior(
+                incoming_places,
+                outgoing_places,
+                factory,
+                sample_delay=lambda delay_config=delay_config: delay_config.sample(rng),
+            ),
             selection=default_selection(incoming_places),
         )
         event.silent = silent
@@ -216,10 +228,11 @@ def build_simulation(ocpn: Ocpn, delay: float = 1) -> SimProblem:
     return model
 
 
-def run_simulation(ocpn: Ocpn, duration: float = 500, delay: float = 1) -> SimulationResult:
-    model = build_simulation(ocpn, delay=delay)
+def run_simulation(ocpn: Ocpn, config: SimulationConfig | None = None) -> SimulationResult:
+    config = config or SimulationConfig()
+    model = build_simulation(ocpn, config)
     reporter = OCELReporter(model)
-    model.simulate(duration, reporter)
+    model.simulate(config.duration, reporter)
 
     events = [
         SimulatedEvent(
