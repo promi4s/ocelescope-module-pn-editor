@@ -2,6 +2,8 @@ import type { ObjectCentricPetriNet } from "@r4pm/components";
 import {
   Box,
   Button,
+  Center,
+  Loader,
   Stack,
   Text,
   Splitter,
@@ -24,7 +26,7 @@ import {
   DatabaseArrowUp,
   DatabaseArrowDown,
 } from "lucide-react";
-import { lazy, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import type { UseSplitterReturnValue } from "@mantine/hooks";
 import {
   addPlace,
@@ -33,14 +35,19 @@ import {
 } from "../../util/OCPN/editor_functions";
 import { SaveOCPNSession } from "../../util/OCPN/save_session";
 import { useRef, useCallback } from "react";
-import { EditorMode } from "../main";
+import { useCurrentOcel } from "@ocelescope/core";
 import {
+  useEventActivities,
+  useObjectTypes,
   useExportOCPN,
+  useExportPnml,
   useImportOCPN,
+  useImportPnml,
   useLoadSession,
   useSaveSession,
 } from "../../api/ocpnEditor";
-import { downloadFile } from "../../util/Petri Net/export_pnml";
+import { downloadFile } from "../../util/OCPN/download";
+import { FormatMenu, type NetFormat } from "../../util/OCPN/format_menu";
 import { notifications } from "@mantine/notifications";
 import { LoadOCPNSession } from "../../util/OCPN/load_session";
 
@@ -58,17 +65,10 @@ const emptyNet: ObjectCentricPetriNet = {
   place_in_out_mult: {},
 };
 
-const Editor = ({
-  mode,
-  onModeChange,
-  objectTypes,
-  eventActivities,
-}: {
-  mode: EditorMode;
-  onModeChange: (mode: EditorMode) => void;
-  objectTypes: string[];
-  eventActivities: string[];
-}) => {
+const Editor = () => {
+  const { id } = useCurrentOcel();
+  const { data: objectTypes = [] } = useObjectTypes(id);
+  const { data: eventActivities = [] } = useEventActivities(id);
   const [mounted, setMounted] = useState(false);
   const [net, setNet] = useState<ObjectCentricPetriNet>(emptyNet);
   const [seedNet, setSeedNet] = useState<ObjectCentricPetriNet>(emptyNet);
@@ -88,20 +88,28 @@ const Editor = ({
 
   const [saveModalOpened, setSaveModalOpened] = useState(false);
   const [loadModalOpened, setLoadModalOpened] = useState(false);
+  const [saveFormat, setSaveFormat] = useState<NetFormat>("ocpn");
 
   const netUpdateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const splitterRef = useRef<UseSplitterReturnValue>(null);
 
   const { mutateAsync: exportOcpn } = useExportOCPN();
+  const { mutateAsync: exportPnml } = useExportPnml();
   const { mutateAsync: importOcpn } = useImportOCPN();
+  const { mutateAsync: importPnml } = useImportPnml();
   const { mutateAsync: saveSession } = useSaveSession();
   const { mutateAsync: loadSession } = useLoadSession();
 
-  const handleDownload = async () => {
+  const handleDownload = async (format: NetFormat) => {
+    if (format === "classic") {
+      const pnml = await exportPnml({ data: net });
+      downloadFile("petri-net.pnml", pnml as string, "application/xml");
+    } else {
     const result = await exportOcpn({ data: net });
     const content = JSON.stringify(result, null, 2);
     downloadFile("ocpn.ocelescope", content, "application/json");
+    }
   };
 
   const handleImportClick = () => fileInputRef.current?.click();
@@ -109,7 +117,9 @@ const Editor = ({
   const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const importedOCPN = await importOcpn({ data: { file } });
+    const importedOCPN = file.name.toLowerCase().endsWith(".pnml")
+      ? await importPnml({ data: { file } })
+      : await importOcpn({ data: { file } });
     setSeedNet(importedOCPN as ObjectCentricPetriNet);
     setNet(importedOCPN as ObjectCentricPetriNet);
     setRemountKey((k) => k + 1);
@@ -218,7 +228,7 @@ const Editor = ({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".ocelescope"
+                  accept=".ocelescope,.pnml"
                   style={{ display: "none" }}
                   onChange={handleFileSelected}
                 />
@@ -236,26 +246,26 @@ const Editor = ({
 
                 <Divider orientation="vertical" />
 
-                <Tooltip label="Save to session" withArrow>
-                  <ActionIcon
-                    variant="subtle"
-                    color="gray"
-                    size="md"
-                    aria-label="save to session"
-                    onClick={() => setSaveModalOpened(true)}
-                  >
-                    <DatabaseArrowDown size={16} />
-                  </ActionIcon>
-                </Tooltip>
+                <FormatMenu
+                  label="Save to session"
+                  icon={<DatabaseArrowDown size={16} />}
+                  net={net}
+                  ocpnLabel="As Object-Centric Petri Net"
+                  classicLabel="As Classic Petri Net"
+                  onSelect={(format) => {
+                    setSaveFormat(format);
+                    setSaveModalOpened(true);
+                  }}
+                />
 
                 <Divider orientation="vertical" />
 
-                <Tooltip label="Upload OCPN" withArrow>
+                <Tooltip label="Upload Petri net (.ocelescope or .pnml)" withArrow>
                   <ActionIcon
                     variant="subtle"
                     color="gray"
                     size="md"
-                    aria-label="Upload OCPN"
+                    aria-label="Upload Petri net"
                     onClick={handleImportClick}
                   >
                     <Upload size={16} />
@@ -264,17 +274,14 @@ const Editor = ({
 
                 <Divider orientation="vertical" />
 
-                <Tooltip label="Download OCPN" withArrow>
-                  <ActionIcon
-                    variant="subtle"
-                    color="gray"
-                    size="md"
-                    aria-label="Download OCPN"
-                    onClick={handleDownload}
-                  >
-                    <DownloadIcon size={16} />
-                  </ActionIcon>
-                </Tooltip>
+                <FormatMenu
+                  label="Download Petri net"
+                  icon={<DownloadIcon size={16} />}
+                  net={net}
+                  ocpnLabel="Object-Centric Petri Net (.ocelescope)"
+                  classicLabel="Classic Petri Net (.pnml)"
+                  onSelect={handleDownload}
+                />
 
                 <Divider orientation="vertical" />
 
@@ -296,11 +303,19 @@ const Editor = ({
               pos="relative"
               style={{ flex: 1, minHeight: 0, overflow: "hidden" }}
             >
-              <OcpnEditorPanel
-                key={remountKey}
-                data={seedNet}
-                onNetChange={handleNetChange}
-              />
+              <Suspense
+                fallback={
+                  <Center h="100%">
+                    <Loader />
+                  </Center>
+                }
+              >
+                <OcpnEditorPanel
+                  key={remountKey}
+                  data={seedNet}
+                  onNetChange={handleNetChange}
+                />
+              </Suspense>
             </Box>
           </Stack>
         </Splitter.Pane>
@@ -308,19 +323,7 @@ const Editor = ({
         <Splitter.Pane defaultSize={25} min={"10%"} collapsible>
           <ScrollArea h="100%" type="auto">
             <Stack gap="xs" p="md">
-              <Text fw={600} size="sm">
-                Editor Type
-              </Text>
-              <SegmentedControl
-                size="xs"
-                value={mode}
-                onChange={(v) => onModeChange(v as EditorMode)}
-                data={[
-                  { label: "Object-Centric", value: "ocpn" },
-                  { label: "Classic", value: "classic" },
-                ]}
-              />
-              <Stack gap={0} pt={"xs"}>
+              <Stack gap={0}>
                 <Card withBorder radius="sm" padding="sm">
                   <Text fw={600} size="sm">
                     New Place
@@ -457,10 +460,10 @@ const Editor = ({
         opened={saveModalOpened}
         onClose={() => setSaveModalOpened(false)}
         onSave={(name) => {
-          saveSession({ data: seedNet, params: { name } });
+          saveSession({ data: net, params: { name, format: saveFormat } });
           notifications.show({
             title: "Saved to session",
-            message: "OCPN has been saved to session",
+            message: saveFormat === "classic" ? "Classic Petri net has been saved to session" : "OCPN has been saved to session",
           });
         }}
       />
