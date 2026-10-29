@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { useRef, useState } from "react";
 import type { UseSplitterReturnValue } from "@mantine/hooks";
-import { wasmLayout } from "@r4pm/components/rust-layout/wasm";
+import { wasmViz } from "@r4pm/components/viz/wasm";
 import {
   useExportPetriNetPnml,
   useImportPetriNetPnml,
@@ -241,7 +241,7 @@ const PetriNetEditor = ({
                     relayoutOnDrag={false}
                     initialNodes={[]}
                     initialEdges={[]}
-                    layoutOverride={wasmLayout.petri}
+                    viz={wasmViz}
                   >
                     <EditorFunction
                       onReady={(actions) => (actionsRef.current = actions)}

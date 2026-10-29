@@ -1,7 +1,12 @@
 import { useCallback, useEffect } from "react";
 import { useReactFlow, useOnSelectionChange, type Edge } from "@xyflow/react";
-import { type ArcData, type PetriNetNode } from "@r4pm/components/petri";
-import { wasmLayout } from "@r4pm/components/rust-layout/wasm";
+import {
+  type ArcData,
+  layoutPetriElements,
+  nodesToPetriNet,
+  type PetriNetNode,
+} from "@r4pm/components/petri";
+import { wasmViz } from "@r4pm/components/viz/wasm";
 import { HideToolbarButtons } from "./hide_buttons";
 
 const nextPlaceId = (nodes: PetriNetNode[]) => {
@@ -171,11 +176,13 @@ export const EditorFunction = ({
   const getGraph = () => ({ nodes: getNodes(), edges: getEdges() });
 
   const runLayout = async () => {
-    if (!wasmLayout.petri) return;
-    const { nodes: layoutNodes, edges: layoutEdges } = await wasmLayout.petri(
-      getNodes(),
-      getEdges(),
-    );
+    const nodes = getNodes();
+    const edges = getEdges();
+    const { nodes: layoutNodes, edges: layoutEdges } =
+      await layoutPetriElements(wasmViz, nodesToPetriNet(nodes, edges), {
+        nodes,
+        edges,
+      });
     setNodes(layoutNodes);
     setEdges(layoutEdges);
   };

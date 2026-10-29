@@ -1,6 +1,6 @@
 {
 	"name": "@ocelescope/ocpn-editor",
-	"version": "0.10.7",
+	"version": "0.11.0",
 	"description": "An OCPN Editor",
 	"author": "Uy Sa Huynh",
 	"type": "module",
