@@ -1241,7 +1241,7 @@ wheels = [
 
 [[package]]
 name = "ocelescope"
-version = "0.10.2"
+version = "0.11.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "duckdb" },
@@ -1258,9 +1258,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "r4pm-full", extra = ["polars"] },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f8/85/c2c6cb3acd4141b36c4dff92ca37f5a25c7fca21cb394bcfffe8a2b6e116/ocelescope-0.10.2.tar.gz", hash = "sha256:99366dae83290cff61e76cc91e15cb9c5f533be23ea67738e68ceecd5b33b581", size = 81579, upload-time = "2026-10-19T11:44:36.274Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/64/da/4a427d1b0ff1e78a5d09bc3c9280588db454df58eb3b8f03ca19807bd500/ocelescope-0.11.0.tar.gz", hash = "sha256:b91f46cc6ad43eff53eb0b3bbe80af0422405a899b49a4c111757ac21f4e6754", size = 86646, upload-time = "2026-10-29T12:27:06.941Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/86/33/41d8854ac0a64c60bf7f510b7f077d609d6495f47ca3288512b2e81ab750/ocelescope-0.10.2-py3-none-any.whl", hash = "sha256:cbc81e07fd094ac5a784a88a6883d033a2310f33528302dfbe8c7405fa803f6c", size = 112959, upload-time = "2026-10-19T11:44:31.879Z" },
+    { url = "https://files.pythonhosted.org/packages/26/d2/fc516ba6ff6a0a96aac65bcb25762ca4f5d9f05592d04d366762381bb9b8/ocelescope-0.11.0-py3-none-any.whl", hash = "sha256:0d673cc0aec772c541ec7225ad228a1f68fc93a755bdf7bf14ea72c1b570e9b0", size = 120104, upload-time = "2026-10-29T12:27:03.28Z" },
 ]
 
 [package.optional-dependencies]
@@ -1275,7 +1275,7 @@ plugin = [
 
 [[package]]
 name = "ocelescope-backend"
-version = "0.10.2"
+version = "0.11.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fastapi", extra = ["standard"] },
@@ -1289,9 +1289,9 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/24/34/072fd7a82d98dec04e62df39aca468ad59ddc20b7259f6ea2f13443982fd/ocelescope_backend-0.10.2.tar.gz", hash = "sha256:4daa48c334c33cc4e9b259d6fa633cabdadfdad60358fe93c0599d65547523e1", size = 33962, upload-time = "2026-10-19T11:44:37.08Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a2/3d/16cbd1c937c031260a4f1a874ada373c26bf104e2f669f6a7991d8bbe9d9/ocelescope_backend-0.11.0.tar.gz", hash = "sha256:0ddf2565b6bd161fc40333be6a586596ceab44a7314ae3f50e0c8c92a6068cb5", size = 34948, upload-time = "2026-10-29T12:27:07.838Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3e/b9/c3c7fbf3e20ca3375c9fb16b7f54c43a6814180d94d7695299234f365557/ocelescope_backend-0.10.2-py3-none-any.whl", hash = "sha256:32752b5a769ac16b0c06944a33f2366f989a95281fc177154f26e3f0c8dc3908", size = 50586, upload-time = "2026-10-19T11:44:33.124Z" },
+    { url = "https://files.pythonhosted.org/packages/3f/1b/874dad45e536300be3c1eca8361cb5261a70d778d5b4ffba862a9081c112/ocelescope_backend-0.11.0-py3-none-any.whl", hash = "sha256:19287606d876867ca907c83a531b7582a241fbc1834957e3d30f72b27dd54f66", size = 52758, upload-time = "2026-10-29T12:27:04.324Z" },
 ]
 
 [[package]]
@@ -1313,9 +1313,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ocelescope-backend", specifier = ">=0.10.2,<0.11.0" },
-    { name = "ocelescope-module-filter", specifier = ">=0.10.2,<0.11.0" },
-    { name = "ocelescope-module-ocel", specifier = ">=0.10.2,<0.11.0" },
+    { name = "ocelescope-backend", specifier = ">=0.11.0,<0.12.0" },
+    { name = "ocelescope-module-filter", specifier = ">=0.11.0,<0.12.0" },
+    { name = "ocelescope-module-ocel", specifier = ">=0.11.0,<0.12.0" },
     { name = "ocelescope-module-ocpn-editor", editable = "backend-modules/ocpn-editor" },
 ]
 
@@ -1327,23 +1327,24 @@ dev = [
 
 [[package]]
 name = "ocelescope-module-filter"
-version = "0.10.2"
+version = "0.11.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fastapi" },
     { name = "ocelescope" },
     { name = "ocelescope-backend" },
+    { name = "ocelescope-module-ocel" },
     { name = "packaging" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ee/8d/27d8528a0162d673ab1b8ef5ce8a2737da6cc5e231be912745e53bddd50c/ocelescope_module_filter-0.10.2.tar.gz", hash = "sha256:8c704526680da609be1b88ca0f1a2cc762c423154158ab923a97989ee686fcca", size = 2868, upload-time = "2026-10-19T11:44:37.781Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2b/04/0784141a9f32e934e0e167bc225d313a788186e5b1c81745eadb0645f493/ocelescope_module_filter-0.11.0.tar.gz", hash = "sha256:4e48487ff453da6f7bdc257112b61d19929556b90283750858b09b295d89fdcd", size = 3618, upload-time = "2026-10-29T12:27:08.568Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2b/e0/ec11b91ffd728008eb8a3b1e9481555a90e6473e32b2a384539620f72b20/ocelescope_module_filter-0.10.2-py3-none-any.whl", hash = "sha256:9a79db395c324d7ab07002134fcedefaab5e0e2583a877f2a9545b5eece4dd60", size = 4210, upload-time = "2026-10-19T11:44:34.229Z" },
+    { url = "https://files.pythonhosted.org/packages/61/9b/f224f932da5c64a9632d90d408f2d4a53eb51245b96710b08cde5d30df7e/ocelescope_module_filter-0.11.0-py3-none-any.whl", hash = "sha256:8d6eea43567808877495b09a3204ed1d2c86197c869f83573e8c11183bb322e7", size = 5199, upload-time = "2026-10-29T12:27:05.294Z" },
 ]
 
 [[package]]
 name = "ocelescope-module-ocel"
-version = "0.10.2"
+version = "0.11.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fastapi" },
@@ -1354,14 +1355,14 @@ dependencies = [
     { name = "polars" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d8/69/da73a08655b4b70670bfb48e75082cd89e7d8f76d8193234c766d64dabda/ocelescope_module_ocel-0.10.2.tar.gz", hash = "sha256:144be33c15d95bc0b45719c6e0317b711992e2d96cf6019828ccd54c32b7400b", size = 17090, upload-time = "2026-10-19T11:44:38.61Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/51/af/a676462bd6ce381c1df22a6fd4075cee25193ecfd8d2deeadce772638a92/ocelescope_module_ocel-0.11.0.tar.gz", hash = "sha256:cfa1e05ab158c27bf96804ccd7cef663903699903ee9ed8b3e4ae14b44fc07ea", size = 19200, upload-time = "2026-10-29T12:27:09.185Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/04/fd/7d4bca21ce54e298378328f8e3890723ee2f83a47c8382bf65efaaba622c/ocelescope_module_ocel-0.10.2-py3-none-any.whl", hash = "sha256:ad61ef2a81c75c7f26d047f6d9a8d19ec8ceef51ab00e46b4a764d14bd274252", size = 26059, upload-time = "2026-10-19T11:44:35.228Z" },
+    { url = "https://files.pythonhosted.org/packages/30/1d/7b82a0eb9b5f3c0c3a3fe04a3bcf3fab0d9133b149483d7133c55462db23/ocelescope_module_ocel-0.11.0-py3-none-any.whl", hash = "sha256:42df2f61aa1cd6734e76c46ffb97bb462adcdea7c79183aaeb6c39c893b77067", size = 28508, upload-time = "2026-10-29T12:27:06.079Z" },
 ]
 
 [[package]]
 name = "ocelescope-module-ocpn-editor"
-version = "0.10.7"
+version = "0.11.0"
 source = { editable = "backend-modules/ocpn-editor" }
 dependencies = [
     { name = "ocelescope-backend" },
@@ -1371,9 +1372,9 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ocelescope-backend", specifier = ">=0.10.2,<0.11.0" },
-    { name = "ocelescope-module-filter", specifier = ">=0.10.2,<0.11.0" },
-    { name = "ocelescope-module-ocel", specifier = ">=0.10.2,<0.11.0" },
+    { name = "ocelescope-backend", specifier = ">=0.11.0,<0.12.0" },
+    { name = "ocelescope-module-filter", specifier = ">=0.11.0,<0.12.0" },
+    { name = "ocelescope-module-ocel", specifier = ">=0.11.0,<0.12.0" },
 ]
 
 [[package]]
@@ -2213,7 +2214,7 @@ resolution-markers = [
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" } },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/7a/97/5a3609c4f8d58b039179648e62dd220f89864f56f7357f5d4f45c29eb2cc/scipy-1.17.1.tar.gz", hash = "sha256:95d8e012d8cb8816c226aef832200b1d45109ed4464303e997c5b13122b297c0", size = 30573822, upload-time = "2026-02-23T00:26:24.851Z" }
 wheels = [
@@ -2295,7 +2296,7 @@ resolution-markers = [
     "python_full_version == '3.12.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
-    { name = "numpy", version = "2.5.0", source = { registry = "https://pypi.org/simple" } },
+    { name = "numpy", version = "2.5.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/a7/25/c2700dfaf6442b4effaa91af24ebce5dc9d31bb4a69706313aae70d72cd0/scipy-1.18.0.tar.gz", hash = "sha256:67b2ad2ad54c72ca6d04975a9b2df8c3638c34ddd5b28738e94fc2b57929d378", size = 30774447, upload-time = "2026-06-19T15:01:43.456Z" }
 wheels = [

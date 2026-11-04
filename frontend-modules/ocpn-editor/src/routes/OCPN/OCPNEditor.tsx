@@ -1,4 +1,4 @@
-import type { ObjectCentricPetriNet } from "@r4pm/components";
+import type { OcpnImportResponse as ObjectCentricPetriNet } from "../../api/ocpnEditor";
 import {
   Box,
   Button,

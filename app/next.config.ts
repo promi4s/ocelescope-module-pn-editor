@@ -16,8 +16,6 @@ const nextConfig: NextConfig = {
     proxyTimeout: 30 * 60 * 1000,
   },
   transpilePackages: [
-    "@mantine/charts",
-    "recharts",
     "@r4pm/components",
     ...localModules,
   ],

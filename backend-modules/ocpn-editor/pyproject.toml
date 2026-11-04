@@ -1,14 +1,14 @@
 [project]
 name = "ocelescope-module-ocpn-editor"
-version = "0.10.7"
+version = "0.11.0"
 readme = "README.md"
 description = "An OCPN Editor"
 authors = [{ name = "Uy Sa Huynh" }]
 requires-python = ">=3.11"
 dependencies = [
-  "ocelescope-backend>=0.10.2,<0.11.0",
-  "ocelescope-module-filter>=0.10.2,<0.11.0",
-  "ocelescope-module-ocel>=0.10.2,<0.11.0",
+  "ocelescope-backend>=0.11.0,<0.12.0",
+  "ocelescope-module-filter>=0.11.0,<0.12.0",
+  "ocelescope-module-ocel>=0.11.0,<0.12.0",
 ]
 
 [project.entry-points."ocelescope_backend.modules"]
