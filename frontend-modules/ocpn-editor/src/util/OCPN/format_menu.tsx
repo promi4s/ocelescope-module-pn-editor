@@ -1,4 +1,4 @@
-import type { ObjectCentricPetriNet } from "@r4pm/components";
+import type { OcpnImportResponse as ObjectCentricPetriNet } from "../../api/ocpnEditor";
 import { ActionIcon, Menu, Text, Tooltip } from "@mantine/core";
 import type { ReactNode } from "react";
 
