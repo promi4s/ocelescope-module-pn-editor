@@ -29,3 +29,7 @@ class Ocpn(BaseModel):
     place_in_out_mult: dict[str, tuple[dict[str, bool], dict[str, bool]]] | None = None
 
 
+class OcpnImportResponse(BaseModel):
+    petri_net: EditorOCPN
+    place_object_type: dict[str, str]
+    place_in_out_mult: dict[str, tuple[dict[str, bool], dict[str, bool]]]

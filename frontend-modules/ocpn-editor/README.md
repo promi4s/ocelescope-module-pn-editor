@@ -1,32 +1,21 @@
-# OCPN Editor
+# @ocelescope/ocpn-editor
 
-An OCPN Editor
+A Petri net and object-centric Petri net (OCPN) editor for
+[Ocelescope](https://www.ocelescope.org). It's the frontend half of the
+[`ocelescope-module-ocpn-editor`](../../backend-modules/ocpn-editor) backend module.
 
-An [Ocelescope](https://www.ocelescope.org) frontend module (`@instance/ocpn-editor`).
+## Install
 
-- `src/index.ts` — module definition (name `ocpnEditor`, label, routes)
-- `src/routes/` — pages
-- `src/api/` — typed API client for the `ocpnEditor` backend module,
-  generated from its OpenAPI schema by `pnpm run build` (not committed)
+```sh
+pnpm add @ocelescope/ocpn-editor
+```
 
-Dependencies use `catalog:` versions from
-[`@ocelescope/pnpm-plugin-catalog`](https://www.npmjs.com/package/@ocelescope/pnpm-plugin-catalog),
-so the module needs to live in a pnpm workspace with that config dependency
-(like an Ocelescope module project).
+Then register the module in your app's `ocelescope.config.ts`.
 
-## Scripts
+## Development
 
 | Script | What it does |
 | --- | --- |
-| `pnpm run build` | Regenerates the API client and builds the module into `dist/`. |
+| `pnpm run build` | Regenerates the API client and builds into `dist/`. |
 | `pnpm run dev` | Rebuilds on changes. |
 | `pnpm run typecheck` | Type-checks the module. |
-
-## Updating from the template
-
-This module was generated with [Copier](https://copier.readthedocs.io). To pull
-in later changes from the template, commit your work and run in this folder:
-
-```sh
-uvx copier update
-```

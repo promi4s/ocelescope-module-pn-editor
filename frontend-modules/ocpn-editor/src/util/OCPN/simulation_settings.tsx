@@ -1,4 +1,4 @@
-import type { ObjectCentricPetriNet } from "@r4pm/components";
+import type { OcpnImportResponse as ObjectCentricPetriNet } from "../../api/ocpnEditor";
 import { Card, Checkbox, Group, NumberInput, Select, Stack, Text, TextInput } from "@mantine/core";
 import type { DelayConfig, DelayConfigDistribution, SimulationConfig, SimulationConfigTimeUnit } from "../../api/ocpnEditor";
 

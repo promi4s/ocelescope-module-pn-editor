@@ -5,4 +5,4 @@ api_module: ocpnEditor
 author: Uy Sa Huynh
 description: An OCPN Editor
 module_label: OCPN Editor
-npm_package: '@instance/ocpn-editor'
+npm_package: '@ocelescope/ocpn-editor'

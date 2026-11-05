@@ -25,7 +25,9 @@ class ImportResponse(BaseModel):
     transitions: list[ImportTransition]
     arcs: list[ImportArc]
 
-#Resource 
+
+# Resource
+
 
 class ClassicPlace(BaseModel):
     id: str

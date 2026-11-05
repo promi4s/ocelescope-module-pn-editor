@@ -1,10 +1,13 @@
 {
-	"name": "@instance/ocpn-editor",
-	"version": "0.1.0",
+	"name": "@ocelescope/ocpn-editor",
+	"version": "0.11.1",
 	"description": "An OCPN Editor",
 	"author": "Uy Sa Huynh",
-	"private": true,
 	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/promi4s/ocelescope-module-pn-editor"
+	},
 	"exports": {
 		".": "./dist/index.js",
 		"./package.json": "./package.json"
@@ -29,18 +32,17 @@
 		"lucide-react": "catalog:",
 		"react": "catalog:",
 		"react-dom": "catalog:",
-		"@r4pm/components": "^0.3.2",
-		"@mantine/hooks": "9.4.0",
-		"@mantine/core": "^9.4.0",
-		"@xyflow/react": "^12.10.1",
-		"@mantine/notifications": "^9.7.1"
-		
+		"@r4pm/components": "catalog:",
+		"@mantine/hooks": "catalog:",
+		"@mantine/core": "catalog:",
+		"@xyflow/react": "catalog:",
+		"@mantine/notifications": "catalog:"
 	},
 	"devDependencies": {
 		"@ocelescope/api-client": "catalog:",
 		"@ocelescope/api-config": "catalog:",
 		"@ocelescope/core": "catalog:",
-  		"@ocelescope/resources": "catalog:",
+		"@ocelescope/resources": "catalog:",
 		"@tanstack/react-query": "catalog:",
 		"@types/react": "catalog:",
 		"axios": "catalog:",

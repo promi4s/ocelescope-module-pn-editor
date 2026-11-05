@@ -1,6 +1,6 @@
 {
 	"name": "@instance/app",
-	"version": "0.1.0",
+	"version": "0.10.3",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -10,17 +10,17 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@instance/ocpn-editor": "workspace:*",
+		"@ocelescope/ocpn-editor": "workspace:*",
 		"@ocelescope/core": "catalog:",
 		"@ocelescope/management": "catalog:",
 		"next": "catalog:",
 		"react": "catalog:",
 		"react-dom": "catalog:",
-		"@r4pm/components": "^0.3.2",
-		"@mantine/hooks": "9.4.0",
-		"@mantine/core": "^9.4.0",
-		"@xyflow/react": "^12.10.1",
-		"@mantine/notifications": "^9.7.1"
+		"@r4pm/components": "catalog:",
+		"@mantine/hooks": "catalog:",
+		"@mantine/core": "catalog:",
+		"@xyflow/react": "catalog:",
+		"@mantine/notifications": "catalog:"
 	},
 	"devDependencies": {
 		"@types/node": "catalog:",

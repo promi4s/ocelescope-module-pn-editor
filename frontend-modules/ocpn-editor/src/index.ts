@@ -1,6 +1,6 @@
 import { defineModule, defineModuleRoute } from "@ocelescope/core";
 import { PencilRuler } from "lucide-react";
-import Editor from "./routes/main";
+import Editor from "./routes/OCPN/OCPNEditor";
 
 export const PnEditor = defineModuleRoute({
   component: Editor,
@@ -8,7 +8,6 @@ export const PnEditor = defineModuleRoute({
   name: "Petri-Net Editor",
   requiresOcel: false,
 });
-
 
 export default defineModule({
   name: "ocpnEditor",

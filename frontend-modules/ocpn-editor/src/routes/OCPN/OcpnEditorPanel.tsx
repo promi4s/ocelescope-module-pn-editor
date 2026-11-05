@@ -1,8 +1,13 @@
-import "@r4pm/components/styles.css";
-import { ObjectCentricPetriNetWorkbench, type ObjectCentricPetriNet, ViewerConfigProvider, ViewerExportFrame } from "@r4pm/components";
-import { wasmLayout } from "@r4pm/components/rust-layout/wasm";
-import { useEffect, useRef } from "react";
-import {HideToolbarButtons} from "../../util/OCPN/hideToolbar";
+import {
+  ObjectCentricPetriNetWorkbench,
+  ViewerConfigProvider,
+  ViewerExportFrame,
+} from "@r4pm/components";
+import { wasmViz } from "@r4pm/components/viz/wasm";
+import { useEffect, useMemo, useRef } from "react";
+import type { OcpnImportResponse as ObjectCentricPetriNet } from "../../api/ocpnEditor";
+import { fromR4pmOcpn, toR4pmOcpn } from "../../util/OCPN/editor_functions";
+import { HideToolbarButtons } from "../../util/OCPN/hideToolbar";
 
 const OcpnEditorPanel = ({
   data,
@@ -13,6 +18,7 @@ const OcpnEditorPanel = ({
   onNetChange: (net: ObjectCentricPetriNet) => void;
   onSelectionChange?: (nodeIds: string[]) => void;
 }) => {
+  const ocpn = useMemo(() => toR4pmOcpn(data), [data]);
   const containerRef = useRef<HTMLDivElement>(null);
   const onSelectionChangeRef = useRef(onSelectionChange);
   onSelectionChangeRef.current = onSelectionChange;
@@ -22,7 +28,9 @@ const OcpnEditorPanel = ({
     if (!container) return;
     let previous = "";
     const report = () => {
-      const ids = Array.from(container.querySelectorAll<HTMLElement>(".react-flow__node.selected"))
+      const ids = Array.from(
+        container.querySelectorAll<HTMLElement>(".react-flow__node.selected"),
+      )
         .map((node) => node.dataset.id)
         .filter((id): id is string => !!id);
       const key = ids.join("|");
@@ -31,17 +39,26 @@ const OcpnEditorPanel = ({
       onSelectionChangeRef.current?.(ids);
     };
     const observer = new MutationObserver(report);
-    observer.observe(container, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+    observer.observe(container, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
   return (
-    <ViewerConfigProvider value={{ layout: wasmLayout }}>
+    <ViewerConfigProvider value={{ viz: wasmViz }}>
       <ViewerExportFrame filename="ocpn" style={{ height: "100%" }}>
-          <div ref={containerRef} style={{ position: "relative", height: "100%" }}>
-            <ObjectCentricPetriNetWorkbench data={data} initialMode="edit" onNetChange={onNetChange} />
-            <HideToolbarButtons labels={["Place", "Transition", "Layout"]} />
-          </div>
+        <div ref={containerRef} style={{ position: "relative", height: "100%" }}>
+          <ObjectCentricPetriNetWorkbench
+            data={ocpn}
+            initialMode="edit"
+            onNetChange={(net) => onNetChange(fromR4pmOcpn(net))}
+          />
+          <HideToolbarButtons labels={["Place", "Transition", "Layout"]} />
+        </div>
       </ViewerExportFrame>
     </ViewerConfigProvider>
   );
