@@ -19,6 +19,8 @@ import {
   Tooltip,
   Divider,
   Table,
+  Pagination,
+  Modal,
 } from "@mantine/core";
 import { isAxiosError } from "axios";
 import {
@@ -27,6 +29,7 @@ import {
   Upload,
   DatabaseArrowUp,
   DatabaseArrowDown,
+  SlidersHorizontal,
 } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import type { UseSplitterReturnValue } from "@mantine/hooks";
@@ -58,9 +61,13 @@ import { LoadOCPNSession } from "../../util/OCPN/load_session";
 import {
   SimulationSettings,
   defaultSimulationConfig,
+  describeSettings,
 } from "../../util/OCPN/simulation_settings";
+import { SimulationSummary } from "../../util/OCPN/simulation_summary";
 
 const OcpnEditorPanel = lazy(() => import("./OcpnEditorPanel"));
+
+const EVENTS_PAGE_SIZE = 20;
 
 const emptyNet: ObjectCentricPetriNet = {
   petri_net: {
@@ -100,12 +107,14 @@ const Editor = () => {
   const [saveFormat, setSaveFormat] = useState<NetFormat>("ocpn");
 
   const [simulationMode, setSimulationMode] = useState(false);
+  const [settingsOpened, setSettingsOpened] = useState(false);
   const [simulationConfig, setSimulationConfig] = useState<SimulationConfig>(
     defaultSimulationConfig,
   );
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [simulationResult, setSimulationResult] =
     useState<SimulationResult | null>(null);
+  const [eventsPage, setEventsPage] = useState(1);
 
   const netUpdateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -189,10 +198,11 @@ const Editor = () => {
         data: { ocpn: net, config: simulationConfig },
       });
       setSimulationResult(result);
+      setEventsPage(1);
     } catch (error) {
-      const detail = isAxiosError(error)
-        ? error.response?.data?.detail
-        : undefined;
+      const raw = isAxiosError(error) ? error.response?.data?.detail : undefined;
+      // 400s carry a message, 422 validation errors a list of { msg }
+      const detail = Array.isArray(raw) ? raw[0]?.msg : raw;
       notifications.show({
         title: "Simulation failed",
         message:
@@ -372,11 +382,17 @@ const Editor = () => {
 
         <Splitter.Pane defaultSize={25} min={"10%"} collapsible>
           <ScrollArea h="100%" type="auto">
-            <Group justify="center" mt={"xs"}>
-              <Button onClick={() => setSimulationMode((m) => !m)}>
-                {simulationMode ? "Switch to editor" : "Switch to simulation"}
-              </Button>
-            </Group>
+            <Box px="md" pt="md">
+              <SegmentedControl
+                fullWidth
+                value={simulationMode ? "simulate" : "edit"}
+                onChange={(v) => setSimulationMode(v === "simulate")}
+                data={[
+                  { label: "Edit", value: "edit" },
+                  { label: "Simulate", value: "simulate" },
+                ]}
+              />
+            </Box>
 
             {!simulationMode ? (
             <Stack gap="xs" p="md">
@@ -514,17 +530,29 @@ const Editor = () => {
               <Stack gap="xs" p="md">
                 <Card withBorder radius="sm" padding="sm">
                   <Text fw={600} size="sm">
-                    Simulation Settings
+                    Simulation
                   </Text>
                   <Text size="xs" c="dimmed" mb="xs">
                     Simulates the current net from its initial marking.
                   </Text>
-                  <Group justify="center">
+                  <Button
+                    fullWidth
+                    variant="default"
+                    leftSection={<SlidersHorizontal size={16} />}
+                    onClick={() => setSettingsOpened(true)}
+                    disabled={simulationRunning}
+                  >
+                    Settings
+                  </Button>
+                  <Text size="xs" c="dimmed" mt={4} mb="xs">
+                    {describeSettings(simulationConfig, net)}
+                  </Text>
+                  <Group grow gap="xs">
                     <Button
                       onClick={handleRunSimulation}
                       loading={simulationRunning}
                     >
-                      Run Simulation
+                      Run
                     </Button>
                     <Button
                       variant="default"
@@ -532,15 +560,22 @@ const Editor = () => {
                       disabled={!simulationResult}
                       onClick={handleDownloadLog}
                     >
-                      Download Log
+                      Export
                     </Button>
                   </Group>
                 </Card>
 
                 {simulationResult && (
+                  <SimulationSummary
+                    result={simulationResult}
+                    startTime={simulationConfig.start_time ?? ""}
+                  />
+                )}
+
+                {simulationResult && (
                   <Card withBorder radius="sm" padding="sm">
                     <Text fw={600} size="sm" mb="xs">
-                      Events
+                      Events ({simulationResult.events.length})
                     </Text>
                     <Table striped withTableBorder fz="xs">
                       <Table.Thead>
@@ -551,7 +586,12 @@ const Editor = () => {
                         </Table.Tr>
                       </Table.Thead>
                       <Table.Tbody>
-                        {simulationResult.events.map((event) => (
+                        {simulationResult.events
+                          .slice(
+                            (eventsPage - 1) * EVENTS_PAGE_SIZE,
+                            eventsPage * EVENTS_PAGE_SIZE,
+                          )
+                          .map((event) => (
                           <Table.Tr
                             key={event.id}
                             c={event.silent ? "dimmed" : undefined}
@@ -567,25 +607,59 @@ const Editor = () => {
                         ))}
                       </Table.Tbody>
                     </Table>
+                    {simulationResult.events.length > EVENTS_PAGE_SIZE && (
+                      <Group justify="center" mt="xs">
+                        <Pagination
+                          size="sm"
+                          total={Math.ceil(
+                            simulationResult.events.length / EVENTS_PAGE_SIZE,
+                          )}
+                          value={eventsPage}
+                          onChange={setEventsPage}
+                          siblings={0}
+                          boundaries={1}
+                        />
+                      </Group>
+                    )}
                   </Card>
                 )}
-
-                <SimulationSettings
-                  net={net}
-                  config={simulationConfig}
-                  onChange={setSimulationConfig}
-                  selectedTransition={
-                    selectedNodeIds.find((id) =>
-                      net.petri_net.transitions.some((t) => t.id === id),
-                    ) ?? null
-                  }
-                  disabled={simulationRunning}
-                />
               </Stack>
             )}
           </ScrollArea>
         </Splitter.Pane>
       </Splitter>
+      <Modal
+        opened={settingsOpened}
+        onClose={() => setSettingsOpened(false)}
+        title={<Text fw={600}>Simulation settings</Text>}
+        size="lg"
+      >
+        <SimulationSettings
+          net={net}
+          config={simulationConfig}
+          onChange={setSimulationConfig}
+          selectedTransition={
+            selectedNodeIds.find((id) =>
+              net.petri_net.transitions.some((t) => t.id === id),
+            ) ?? null
+          }
+          disabled={simulationRunning}
+        />
+        <Group justify="flex-end" mt="md">
+          <Button variant="default" onClick={() => setSettingsOpened(false)}>
+            Done
+          </Button>
+          <Button
+            leftSection={<PlayIcon size={16} />}
+            onClick={() => {
+              setSettingsOpened(false);
+              handleRunSimulation();
+            }}
+          >
+            Run
+          </Button>
+        </Group>
+      </Modal>
       <SaveOCPNSession
         opened={saveModalOpened}
         onClose={() => setSaveModalOpened(false)}

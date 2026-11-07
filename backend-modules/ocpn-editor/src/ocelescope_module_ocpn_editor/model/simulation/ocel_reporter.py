@@ -62,7 +62,10 @@ class OCELReporter(Reporter):
         # variable arc queues actually participated in the event, rather than inspecting
         # the output binding to see what was put back.
         raw_args = [token.value for var, token in binding]
-        if isinstance(activity, OCPNEvent) and activity._user_selection is not None:
+        if isinstance(activity, OCPNEvent) and getattr(activity, "_last_selected", None) is not None:
+            # the selection recorded when the event fired (a selection may depend on how often it fired)
+            selected_args = activity._last_selected
+        elif isinstance(activity, OCPNEvent) and activity._user_selection is not None:
             selected_args = activity._user_selection(*raw_args)
         else:
             selected_args = raw_args
@@ -80,6 +83,16 @@ class OCELReporter(Reporter):
                     obj_type = var.object_type
                     omap[obj_type].append(token.value[str(obj_type) + "_id"])
                     vmap[str(obj_type) + "_vmap"].append(token.value)
+
+        # Objects the event produced but did not consume, i.e. the ones it created (e.g. an order's items).
+        for output in getattr(activity, "_last_output", None) or []:
+            for t in output if isinstance(output, list) else [output]:
+                value = getattr(t, "value", None)
+                if isinstance(value, dict) and value.get("object_type") in omap:
+                    obj_type = value["object_type"]
+                    if value[str(obj_type) + "_id"] not in omap[obj_type]:
+                        omap[obj_type].append(value[str(obj_type) + "_id"])
+                        vmap[str(obj_type) + "_vmap"].append(value)
 
         result = [self.event_id, activity, timestamp] + list(omap.values()) + list(vmap.values())
         self.ocel_df.loc[len(self.ocel_df)] = result

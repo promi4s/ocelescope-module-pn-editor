@@ -1,6 +1,34 @@
 import type { OcpnImportResponse as ObjectCentricPetriNet } from "../../api/ocpnEditor";
-import { Card, Checkbox, Group, NumberInput, Select, Stack, Text, TextInput } from "@mantine/core";
-import type { DelayConfig, DelayConfigDistribution, SimulationConfig, SimulationConfigTimeUnit } from "../../api/ocpnEditor";
+import {
+  ActionIcon,
+  Card,
+  Checkbox,
+  Divider,
+  Group,
+  NumberInput,
+  Select,
+  Stack,
+  Tabs,
+  Text,
+  TextInput,
+  Tooltip,
+  UnstyledButton,
+} from "@mantine/core";
+import { X } from "lucide-react";
+import { useEffect, useState } from "react";
+import type {
+  DelayConfig,
+  DelayConfigDistribution,
+  ObjectCount,
+  SimulationConfig,
+  SimulationConfigTimeUnit,
+} from "../../api/ocpnEditor";
+import {
+  ArrivalsCard,
+  PriorityCard,
+  ObjectCountEditor,
+  describeObjectCounts,
+} from "./simulation_options";
 
 const current_day = () => {
   const d = new Date();
@@ -17,6 +45,39 @@ export const defaultSimulationConfig: SimulationConfig = {
   time_unit: "minutes",
 };
 
+/** One-line overview of the settings, shown next to the Settings button. */
+export const describeSettings = (
+  config: SimulationConfig,
+  net: ObjectCentricPetriNet,
+) => {
+  const unit = config.time_unit ?? "minutes";
+  const transitions = new Set(net.petri_net.transitions.map((t) => t.id));
+  const places = new Set(net.petri_net.places.map((p) => p.id));
+  const delay = config.default_delay ?? { distribution: "fixed", value: 1 };
+  const customized = new Set(
+    [
+      ...Object.keys(config.delays ?? {}),
+      ...Object.keys(config.object_counts ?? {}),
+    ].filter((id) => transitions.has(id)),
+  ).size;
+  const prioritized = (config.activity_priority ?? []).filter((id) =>
+    transitions.has(id),
+  ).length;
+  const arrivals = Object.keys(config.arrivals ?? {}).filter((id) =>
+    places.has(id),
+  ).length;
+  return [
+    `${config.duration ?? 500} ${unit}`,
+    `default delay ${delay.distribution === "exponential" ? "~" : ""}${delay.value ?? 1}`,
+    customized && `${customized} customized transition${customized > 1 ? "s" : ""}`,
+    prioritized && `${prioritized} prioritized`,
+    arrivals && `arrivals in ${arrivals} place${arrivals > 1 ? "s" : ""}`,
+    config.seed != null && "seeded",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+};
+
 const timeUnitOptions = [
   { value: "seconds", label: "Seconds" },
   { value: "minutes", label: "Minutes" },
@@ -30,6 +91,11 @@ const distributionOptions = [
   { value: "fixed", label: "Fixed" },
   { value: "exponential", label: "Exponential" },
 ];
+
+const describeDelay = (delay: DelayConfig, unit: string) =>
+  delay.distribution === "exponential"
+    ? `Exponential, mean ${delay.value ?? 1} ${unit}`
+    : `Fixed, ${delay.value ?? 1} ${unit}`;
 
 const DelayInput = ({
   value,
@@ -95,8 +161,45 @@ export const SimulationSettings = ({
     onChange({ ...config, delays: delay ? { ...rest, [transition]: delay } : rest });
   };
 
+  const timeUnit = config.time_unit ?? "minutes";
+  const transitionIds = new Set(net.petri_net.transitions.map((t) => t.id));
+  const transitionOptions = net.petri_net.transitions.map((t) => ({
+    value: t.id,
+    label: transitionName(t.id),
+  }));
+  const counts = config.object_counts ?? {};
+  const setObjectCounts = (
+    transition: string,
+    value: Record<string, ObjectCount> | undefined,
+  ) => {
+    const { [transition]: _, ...rest } = counts;
+    onChange({ ...config, object_counts: value ? { ...rest, [transition]: value } : rest });
+  };
+  const resetTransition = (transition: string) => {
+    const { [transition]: _delay, ...otherDelays } = delays;
+    const { [transition]: _count, ...otherCounts } = counts;
+    onChange({ ...config, delays: otherDelays, object_counts: otherCounts });
+  };
+  // Settings of deleted transitions are kept in the config but not shown.
+  const customized = net.petri_net.transitions
+    .map((t) => t.id)
+    .filter((id) => delays[id] || counts[id]);
+
+  const [pickedTransition, setPickedTransition] = useState<string | null>(null);
+  useEffect(() => {
+    if (selectedTransition) setPickedTransition(selectedTransition);
+  }, [selectedTransition]);
+
   return (
-    <Stack gap="xs">
+    <Tabs defaultValue={selectedTransition ? "transitions" : "general"}>
+      <Tabs.List grow>
+        <Tabs.Tab value="general">General</Tabs.Tab>
+        <Tabs.Tab value="transitions">Transitions</Tabs.Tab>
+        <Tabs.Tab value="priority">Priority</Tabs.Tab>
+        <Tabs.Tab value="arrivals">Arrivals</Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Panel value="general" pt="sm">
+        <Stack gap="xs">
       <Card withBorder radius="sm" padding="sm">
         <Text fw={600} size="sm" mb="xs">
           General
@@ -155,31 +258,103 @@ export const SimulationSettings = ({
         />
       </Card>
 
+        </Stack>
+      </Tabs.Panel>
+      <Tabs.Panel value="transitions" pt="sm">
       <Card withBorder radius="sm" padding="sm">
         <Text fw={600} size="sm">
-          {`Custom Transition Delay (${config.time_unit ?? "minutes"})`}
+          Transition Settings
         </Text>
         <Text size="xs" c={"dimmed"} mb={"xs"}>
-          Set delays for individual transitions.
+          Pick a transition here, or select it in the net before opening the settings.
         </Text>
-        {selectedTransition ? (
-          <Stack gap={2}>
-            <Text size="xs" fw={500}>
-              {transitionName(selectedTransition)}
+        <Select
+          size="xs"
+          placeholder="Select transition"
+          data={transitionOptions}
+          value={pickedTransition}
+          onChange={setPickedTransition}
+          disabled={disabled}
+          searchable
+          clearable
+          mb="xs"
+        />
+        {pickedTransition && transitionIds.has(pickedTransition) && (
+          <>
+            <Text size="xs" fw={500} mb={4}>
+              {`Delay (${timeUnit})`}
             </Text>
             <DelayInput
-              value={delays[selectedTransition]}
-              onChange={(delay) => setDelay(selectedTransition, delay)}
+              value={delays[pickedTransition]}
+              onChange={(delay) => setDelay(pickedTransition, delay)}
               allowDefault
               disabled={disabled}
             />
-          </Stack>
-        ) : (
+            <ObjectCountEditor
+              net={net}
+              transition={pickedTransition}
+              value={counts[pickedTransition]}
+              onChange={(value) => setObjectCounts(pickedTransition, value)}
+              disabled={disabled}
+            />
+          </>
+        )}
+
+        <Divider my="sm" />
+        <Text size="xs" fw={500} mb={4}>
+          Customized transitions
+        </Text>
+        {customized.length === 0 ? (
           <Text size="xs" c="dimmed">
-            Select a transition to set its own delay.
+            All transitions use the default delay and object numbers.
           </Text>
+        ) : (
+          <Stack gap={2}>
+            {customized.map((id) => (
+              <Group key={id} gap="xs" wrap="nowrap" justify="space-between">
+                <UnstyledButton
+                  onClick={() => setPickedTransition(id)}
+                  style={{ minWidth: 0, flex: 1 }}
+                >
+                  <Text size="xs" truncate fw={id === pickedTransition ? 600 : 400}>
+                    {transitionName(id)}
+                  </Text>
+                  {delays[id] && (
+                    <Text size="xs" c="dimmed">
+                      {describeDelay(delays[id], timeUnit)}
+                    </Text>
+                  )}
+                  {counts[id] && (
+                    <Text size="xs" c="dimmed">
+                      {describeObjectCounts(counts[id])}
+                    </Text>
+                  )}
+                </UnstyledButton>
+                <Tooltip label="Reset to defaults" withArrow>
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    size="sm"
+                    aria-label="Reset to defaults"
+                    disabled={disabled}
+                    onClick={() => resetTransition(id)}
+                  >
+                    <X size={14} />
+                  </ActionIcon>
+                </Tooltip>
+              </Group>
+            ))}
+          </Stack>
         )}
       </Card>
-    </Stack>
+
+      </Tabs.Panel>
+      <Tabs.Panel value="priority" pt="sm">
+      <PriorityCard net={net} config={config} onChange={onChange} disabled={disabled} />
+      </Tabs.Panel>
+      <Tabs.Panel value="arrivals" pt="sm">
+      <ArrivalsCard net={net} config={config} onChange={onChange} disabled={disabled} />
+      </Tabs.Panel>
+    </Tabs>
   );
 };

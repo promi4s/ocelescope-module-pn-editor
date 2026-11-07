@@ -375,6 +375,8 @@ class OCPNEvent(SimEvent):
                 # current clock, so the selection sees the full bound bundle.
                 selected = selection(*args)
                 self._validate_selection_result(selected, args, incoming_vars)
+                # The reporter logs this firing from the selection it actually used.
+                self._last_selected = selected
                 if user_behavior:
                     result = user_behavior(*selected)
             else:
@@ -466,6 +468,8 @@ class OCPNEvent(SimEvent):
                         for token in result[i]
                     ]
 
+            # The reporter also relates the event to the objects it produced (incl. newly created ones).
+            self._last_output = result[:num_outgoing]
             return result
         
         return wrapped_behavior

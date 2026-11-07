@@ -154,4 +154,7 @@ async def load_from_session(
 
 @router.post("/simulation", operation_id="runSimulation")
 def simulate_ocpn(request: SimulationRequest) -> SimulationResult:
-    return run_simulation(request.ocpn, request.config)
+    try:
+        return run_simulation(request.ocpn, request.config)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
