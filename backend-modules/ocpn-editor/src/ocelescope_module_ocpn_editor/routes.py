@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, UploadFile
 import tempfile
 import os
 from r4pm.petri_net import PetriNet as PnmlPetriNet, export_pnml, import_pnml
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, StreamingResponse
 from ocelescope_module_ocpn_editor.util.convert_format import (
     convert_to_OCPN,
     convert_from_OCPN,
@@ -19,7 +19,7 @@ from ocelescope import PetriNet
 from ocelescope_module_ocpn_editor.model.editor.editor_pn import ClassicPetriNet
 from ocelescope_backend.app.dependencies import ApiOcel, ApiSession
 from typing import Literal, cast
-from ocelescope_module_ocpn_editor.util.simulation import run_simulation
+from ocelescope_module_ocpn_editor.util.simulation import SimulationRun, stream_simulation
 from ocelescope_module_ocpn_editor.model.simulation.simulation_result import SimulationResult
 from ocelescope_module_ocpn_editor.model.simulation.simulation_config import SimulationRequest
 
@@ -152,9 +152,19 @@ async def load_from_session(
 # ============================================
 
 
-@router.post("/simulation", operation_id="runSimulation")
-def simulate_ocpn(request: SimulationRequest) -> SimulationResult:
+@router.post("/simulation/stream", operation_id="streamSimulation")
+def simulate_ocpn_stream(request: SimulationRequest) -> StreamingResponse:
+    """
+    Simulates the net, streaming newline-delimited JSON: progress messages while it runs,
+    then one message with the SimulationResult.
+    """
     try:
-        return run_simulation(request.ocpn, request.config)
+        run = SimulationRun(request.ocpn, request.config)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    return StreamingResponse(
+        stream_simulation(run),
+        media_type="application/x-ndjson",
+        # keep proxies (Next.js rewrites, nginx) from compressing or buffering the stream
+        headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
+    )

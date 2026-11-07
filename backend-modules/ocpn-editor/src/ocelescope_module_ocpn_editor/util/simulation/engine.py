@@ -61,8 +61,8 @@ class BoundedSimProblem(SimProblem):
             previous = available
         return None
 
-    def simulate(self, duration, reporter=None):
-        reporters = [] if reporter is None else reporter if isinstance(reporter, list) else [reporter]
+    def steps(self, duration):
+        """Fire events until the duration is reached, yielding each fired timed binding."""
         while self.clock <= duration:
             bindings = self.bindings()
             if not bindings:
@@ -72,6 +72,11 @@ class BoundedSimProblem(SimProblem):
                 break
             timed_binding = self.binding_priority(bindings)
             self.fire(timed_binding)
+            yield timed_binding
+
+    def simulate(self, duration, reporter=None):
+        reporters = [] if reporter is None else reporter if isinstance(reporter, list) else [reporter]
+        for timed_binding in self.steps(duration):
             for r in reporters:
                 r.callback(timed_binding)
 

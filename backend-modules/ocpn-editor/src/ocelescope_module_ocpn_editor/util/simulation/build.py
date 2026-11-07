@@ -1,6 +1,5 @@
 """Translates the editor net and the settings into a SimPN model."""
 import random
-from simpn.simulator import SimProblem
 from ocelescope_module_ocpn_editor.model.simulation.simulation_ocpn import OCPNVar, OCPNEvent
 from ocelescope_module_ocpn_editor.model.simulation.simulation_config import DelayConfig, SimulationConfig
 from ocelescope_module_ocpn_editor.model.editor.editor_ocpn import Ocpn
@@ -13,7 +12,7 @@ from ocelescope_module_ocpn_editor.util.simulation.objects import ObjectIdCounte
 from ocelescope_module_ocpn_editor.util.simulation.selection import default_selection
 
 
-def build_simulation(ocpn: Ocpn, config: SimulationConfig) -> SimProblem:
+def build_simulation(ocpn: Ocpn, config: SimulationConfig) -> BoundedSimProblem:
     net = ocpn.petri_net
     rng = random.Random(config.seed)
     # Seeds the random object subsets; drawn outside `rng` so it does not shift a seeded run.

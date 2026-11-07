@@ -47,10 +47,16 @@ class OCELReporter(Reporter):
                     self.object_types.append(var.object_type)
         self.header.extend(self.object_types)
         self.header.extend([str(object_type)+"_vmap" for object_type in self.object_types])
-        print(self.header)
-        self.ocel_df = pd.DataFrame(columns=self.header)
+        # one dict per event; a DataFrame is only built on demand, since growing one row by row is quadratic
+        self.rows: list[dict] = []
+
+    @property
+    def ocel_df(self) -> pd.DataFrame:
+        return pd.DataFrame(self.rows, columns=self.header)
+
     
-    def callback(self, timed_binding):
+    def callback(self, timed_binding) -> dict:
+        """Record one firing and return its row."""
         (binding, timestamp, activity) = timed_binding
 
         self.event_id += 1
@@ -94,8 +100,9 @@ class OCELReporter(Reporter):
                         omap[obj_type].append(value[str(obj_type) + "_id"])
                         vmap[str(obj_type) + "_vmap"].append(value)
 
-        result = [self.event_id, activity, timestamp] + list(omap.values()) + list(vmap.values())
-        self.ocel_df.loc[len(self.ocel_df)] = result
+        row = {"event_id": self.event_id, "activity": activity, "timestamp": timestamp, **omap, **vmap}
+        self.rows.append(row)
+        return row
 
     def _build_ocel_structures(self) -> tuple[dict, dict]:
         """
@@ -106,7 +113,7 @@ class OCELReporter(Reporter):
         events: dict = {}
         objects: dict = {}
 
-        for _, row in self.ocel_df.iterrows():
+        for row in self.rows:
             eid = row["event_id"]
             activity = row["activity"]
             timestamp = row["timestamp"]

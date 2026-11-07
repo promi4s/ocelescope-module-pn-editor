@@ -21,8 +21,8 @@ import {
   Table,
   Pagination,
   Modal,
+  Progress,
 } from "@mantine/core";
-import { isAxiosError } from "axios";
 import {
   DownloadIcon,
   PlayIcon,
@@ -30,6 +30,7 @@ import {
   DatabaseArrowUp,
   DatabaseArrowDown,
   SlidersHorizontal,
+  SquareIcon,
 } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import type { UseSplitterReturnValue } from "@mantine/hooks";
@@ -50,7 +51,6 @@ import {
   useImportPnml,
   useLoadSession,
   useSaveSession,
-  useRunSimulation,
   type SimulationResult,
   type SimulationConfig,
 } from "../../api/ocpnEditor";
@@ -63,11 +63,26 @@ import {
   defaultSimulationConfig,
   describeSettings,
 } from "../../util/OCPN/simulation_settings";
-import { SimulationSummary } from "../../util/OCPN/simulation_summary";
+import {
+  SimulationSummary,
+  formatSpan,
+} from "../../util/OCPN/simulation_summary";
+import {
+  SimulationCancelled,
+  streamSimulation,
+  type SimulationProgress,
+} from "../../util/OCPN/simulation_stream";
 
 const OcpnEditorPanel = lazy(() => import("./OcpnEditorPanel"));
 
 const EVENTS_PAGE_SIZE = 20;
+
+const TIME_UNIT_MS = {
+  seconds: 1000,
+  minutes: 60_000,
+  hours: 3_600_000,
+  days: 86_400_000,
+} as const;
 
 const emptyNet: ObjectCentricPetriNet = {
   petri_net: {
@@ -115,6 +130,10 @@ const Editor = () => {
   const [simulationResult, setSimulationResult] =
     useState<SimulationResult | null>(null);
   const [eventsPage, setEventsPage] = useState(1);
+  const [simulationProgress, setSimulationProgress] =
+    useState<SimulationProgress | null>(null);
+  const [simulationRunning, setSimulationRunning] = useState(false);
+  const simulationAbort = useRef<AbortController | null>(null);
 
   const netUpdateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -126,8 +145,6 @@ const Editor = () => {
   const { mutateAsync: importPnml } = useImportPnml();
   const { mutateAsync: saveSession } = useSaveSession();
   const { mutateAsync: loadSession } = useLoadSession();
-  const { mutateAsync: runSimulation, isPending: simulationRunning } =
-    useRunSimulation();
 
   const handleDownload = async (format: NetFormat) => {
     if (format === "classic") {
@@ -193,26 +210,40 @@ const Editor = () => {
   };
 
   const handleRunSimulation = async () => {
+    simulationAbort.current?.abort();
+    const controller = new AbortController();
+    simulationAbort.current = controller;
+    setSimulationRunning(true);
+    setSimulationResult(null);
+    setSimulationProgress(null);
+    setEventsPage(1);
     try {
-      const result = await runSimulation({
-        data: { ocpn: net, config: simulationConfig },
-      });
+      const result = await streamSimulation(
+        { ocpn: net, config: simulationConfig },
+        setSimulationProgress,
+        controller.signal,
+      );
       setSimulationResult(result);
-      setEventsPage(1);
     } catch (error) {
-      const raw = isAxiosError(error) ? error.response?.data?.detail : undefined;
-      // 400s carry a message, 422 validation errors a list of { msg }
-      const detail = Array.isArray(raw) ? raw[0]?.msg : raw;
-      notifications.show({
-        title: "Simulation failed",
-        message:
-          typeof detail === "string"
-            ? detail
-            : "The simulation could not be run.",
-        color: "red",
-      });
+      if (!(error instanceof SimulationCancelled)) {
+        notifications.show({
+          title: "Simulation failed",
+          message:
+            error instanceof Error
+              ? error.message
+              : "The simulation could not be run.",
+          color: "red",
+        });
+      }
+    } finally {
+      if (simulationAbort.current === controller) {
+        simulationAbort.current = null;
+        setSimulationRunning(false);
+      }
     }
   };
+
+  const handleCancelSimulation = () => simulationAbort.current?.abort();
 
   const handleDownloadLog = () => {
     if (!simulationResult) return;
@@ -231,7 +262,13 @@ const Editor = () => {
   }, []);
 
   useEffect(() => setMounted(true), []);
+  useEffect(() => () => simulationAbort.current?.abort(), []);
   if (!mounted) return null;
+
+  const unitMs = TIME_UNIT_MS[simulationConfig.time_unit ?? "minutes"];
+  const progressPercent = simulationProgress?.duration
+    ? Math.min(100, (simulationProgress.clock / simulationProgress.duration) * 100)
+    : 0;
 
   const placeOptions = net.petri_net.places.map((p) => ({
     value: p.id,
@@ -548,12 +585,18 @@ const Editor = () => {
                     {describeSettings(simulationConfig, net)}
                   </Text>
                   <Group grow gap="xs">
-                    <Button
-                      onClick={handleRunSimulation}
-                      loading={simulationRunning}
-                    >
-                      Run
-                    </Button>
+                    {simulationRunning ? (
+                      <Button
+                        color="red"
+                        variant="light"
+                        leftSection={<SquareIcon size={14} />}
+                        onClick={handleCancelSimulation}
+                      >
+                        Cancel
+                      </Button>
+                    ) : (
+                      <Button onClick={handleRunSimulation}>Run</Button>
+                    )}
                     <Button
                       variant="default"
                       leftSection={<DownloadIcon size={16} />}
@@ -570,6 +613,32 @@ const Editor = () => {
                     result={simulationResult}
                     startTime={simulationConfig.start_time ?? ""}
                   />
+                )}
+
+                {simulationRunning && (
+                  <Card withBorder radius="sm" padding="sm">
+                    <Group justify="space-between" mb={6}>
+                      <Text fw={600} size="sm">
+                        Simulating…
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        {(simulationProgress?.event_count ?? 0).toLocaleString()}{" "}
+                        events
+                      </Text>
+                    </Group>
+                    <Progress
+                      value={simulationProgress ? progressPercent : 100}
+                      size="sm"
+                      striped
+                      animated
+                      transitionDuration={200}
+                    />
+                    <Text size="xs" c="dimmed" mt={6}>
+                      {simulationProgress
+                        ? `${formatSpan(simulationProgress.clock * unitMs)} of ${formatSpan(simulationProgress.duration * unitMs)} simulated`
+                        : "Starting…"}
+                    </Text>
+                  </Card>
                 )}
 
                 {simulationResult && (
@@ -651,6 +720,7 @@ const Editor = () => {
           </Button>
           <Button
             leftSection={<PlayIcon size={16} />}
+            disabled={simulationRunning}
             onClick={() => {
               setSettingsOpened(false);
               handleRunSimulation();

@@ -2,7 +2,7 @@ import { Card, SimpleGrid, Stack, Text } from "@mantine/core";
 import type { ReactNode } from "react";
 import type { SimulationResult } from "../../api/ocpnEditor";
 
-const formatSpan = (ms: number) => {
+export const formatSpan = (ms: number) => {
   const units: [string, number][] = [
     ["d", 86_400_000],
     ["h", 3_600_000],

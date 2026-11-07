@@ -14,6 +14,6 @@ Simulation of object-centric Petri nets on top of SimPN.
 # Binding object counts, activity priority and object arrivals follow qel_simulation
 # (https://github.com/ninagraves/qel_simulation), reimplemented on top of SimPN.
 from ocelescope_module_ocpn_editor.util.simulation.build import build_simulation
-from ocelescope_module_ocpn_editor.util.simulation.run import run_simulation
+from ocelescope_module_ocpn_editor.util.simulation.run import SimulationRun, stream_simulation
 
-__all__ = ["build_simulation", "run_simulation"]
+__all__ = ["build_simulation", "stream_simulation", "SimulationRun"]
