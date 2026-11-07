@@ -82,6 +82,11 @@ const nextTransitionId = (existingIds: string[]) => {
   return `${"t"}${next}`;
 };
 const nextPlaceId = (net: ObjectCentricPetriNet, objectType: string) => {
+  const sourceId = `${objectType}_source`;
+  const firstOfType = !Object.values(net.place_object_type).includes(objectType);
+  const sourceTaken = net.petri_net.places.some((p) => p.id === sourceId);
+  if (firstOfType && !sourceTaken) return sourceId;
+
   const prefix = `${objectType}_p_`;
   const used = net.petri_net.places
     .map((p) => p.id)
