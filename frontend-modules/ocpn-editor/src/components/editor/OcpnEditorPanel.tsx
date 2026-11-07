@@ -6,8 +6,8 @@ import {
 import { wasmViz } from "@r4pm/components/viz/wasm";
 import { useEffect, useMemo, useRef } from "react";
 import type { OcpnImportResponse as ObjectCentricPetriNet } from "../../api/ocpnEditor";
-import { fromR4pmOcpn, toR4pmOcpn } from "../../util/OCPN/editor_functions";
-import { HideToolbarButtons } from "../../util/OCPN/hideToolbar";
+import { fromR4pmOcpn, toR4pmOcpn } from "../../lib/net";
+import { HideToolbarButtons } from "./HideToolbarButtons";
 
 const OcpnEditorPanel = ({
   data,

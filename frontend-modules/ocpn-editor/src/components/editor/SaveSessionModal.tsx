@@ -1,7 +1,7 @@
 import { Button, Modal, Stack, TextInput } from "@mantine/core";
 import { useState } from "react";
 
-export const SaveOCPNSession = ({
+export const SaveSessionModal = ({
   opened,
   onClose,
   onSave,

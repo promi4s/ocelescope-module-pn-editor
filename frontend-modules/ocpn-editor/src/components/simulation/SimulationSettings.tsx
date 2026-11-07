@@ -28,7 +28,7 @@ import {
   PriorityCard,
   ObjectCountEditor,
   describeObjectCounts,
-} from "./simulation_options";
+} from "./SimulationOptions";
 
 const current_day = () => {
   const d = new Date();

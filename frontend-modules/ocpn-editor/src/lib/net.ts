@@ -1,5 +1,20 @@
 import type { Ocpn } from "@r4pm/components";
-import type { OcpnImportResponse as ObjectCentricPetriNet } from "../../api/ocpnEditor";
+import type { OcpnImportResponse as ObjectCentricPetriNet } from "../api/ocpnEditor";
+
+/** Formats a net can be saved or downloaded in. */
+export type NetFormat = "ocpn" | "classic";
+
+/** A net can only be converted to a classic Petri net if all its places share one object type... */
+export const hasSingleObjectType = (net: ObjectCentricPetriNet) =>
+  new Set(Object.values(net.place_object_type)).size === 1;
+
+/** ...and it has no variable arcs. */
+export const hasVariableArcs = (net: ObjectCentricPetriNet) =>
+  Object.values(net.place_in_out_mult ?? {}).some(
+    ([incoming, outgoing]) =>
+      Object.values(incoming).some(Boolean) ||
+      Object.values(outgoing).some(Boolean),
+  );
 
 export const toR4pmOcpn = (net: ObjectCentricPetriNet): Ocpn => {
   const mult = net.place_in_out_mult;

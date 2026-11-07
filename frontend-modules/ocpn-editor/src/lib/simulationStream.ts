@@ -1,6 +1,6 @@
 import { isAxiosError, isCancel } from "axios";
-import type { SimulationRequest, SimulationResult } from "../../api/ocpnEditor";
-import { customFetch } from "../../lib/fetcher";
+import type { SimulationRequest, SimulationResult } from "../api/ocpnEditor";
+import { customFetch } from "./fetcher";
 
 export type SimulationProgress = {
   /** Current simulation time and the configured duration, in the configured time unit. */

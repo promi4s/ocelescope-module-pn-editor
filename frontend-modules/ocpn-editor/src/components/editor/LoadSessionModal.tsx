@@ -2,9 +2,9 @@ import { Button, Modal, SegmentedControl, Stack } from "@mantine/core";
 import { useState } from "react";
 import { ResourceSelect } from "@ocelescope/resources";
 import { useClassicSchemaHash, useOcpnSchemaHash } from "../../api/ocpnEditor";
-import type { NetFormat } from "./format_menu";
+import type { NetFormat } from "../../lib/net";
 
-export const LoadOCPNSession = ({
+export const LoadSessionModal = ({
   opened,
   onClose,
   onLoad,

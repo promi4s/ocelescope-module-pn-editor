@@ -1,16 +1,11 @@
 import type { OcpnImportResponse as ObjectCentricPetriNet } from "../../api/ocpnEditor";
 import { ActionIcon, Menu, Text, Tooltip } from "@mantine/core";
 import type { ReactNode } from "react";
-
-export type NetFormat = "ocpn" | "classic";
-
-export const hasSingleObjectType = (net: ObjectCentricPetriNet) =>
-  new Set(Object.values(net.place_object_type)).size === 1;
-
-export const hasVariableArcs = (net: ObjectCentricPetriNet) =>
-  Object.values(net.place_in_out_mult ?? {}).some(
-    ([incoming, outgoing]) => Object.values(incoming).some(Boolean) || Object.values(outgoing).some(Boolean),
-  );
+import {
+  hasSingleObjectType,
+  hasVariableArcs,
+  type NetFormat,
+} from "../../lib/net";
 
 export const FormatMenu = ({
   label,

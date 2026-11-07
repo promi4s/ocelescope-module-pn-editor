@@ -1,6 +1,6 @@
 import { defineModule, defineModuleRoute } from "@ocelescope/core";
 import { PencilRuler } from "lucide-react";
-import Editor from "./routes/OCPN/OCPNEditor";
+import Editor from "./routes/Editor";
 
 export const PnEditor = defineModuleRoute({
   component: Editor,
