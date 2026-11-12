@@ -7,7 +7,7 @@ importers:
     configDependencies:
       '@ocelescope/pnpm-plugin-catalog':
         specifier: latest
-        version: 0.11.0
+        version: 0.13.0
     packageManagerDependencies:
       pnpm:
         specifier: 12.14.0
@@ -15,8 +15,8 @@ importers:
 
 packages:
 
-  '@ocelescope/pnpm-plugin-catalog@0.11.0':
-    resolution: {integrity: sha512-3F/4Oh9FA/Wi77yLuSht+i+VXgNpY9ikh9oM+cu13Urv8wiVoTZYOwB8M5XO/w6PJFbDJE77GaBQ0oHoIr/DcA==}
+  '@ocelescope/pnpm-plugin-catalog@0.13.0':
+    resolution: {integrity: sha512-e+B7vQ4Vag3FTaptQeMmYKtKEHl5fnZ6s/TpYuNzZta2DXjVnwc2SXONv4bKyCgVJCD4PU05bHaMaqT4Wx+xlA==}
 
   '@pnpm/exe.android-arm64@12.14.0':
     resolution: {integrity: sha512-+iSh7x21C3A2hqc+Z0ZmbKTcn6YNlzrXM142PsnQH/dLj0DYxFzoBvc6XAnL/yfQ5nnH2ebBiRj/zVxr61fZbQ==}
@@ -102,7 +102,7 @@ packages:
 
 snapshots:
 
-  '@ocelescope/pnpm-plugin-catalog@0.11.0': {}
+  '@ocelescope/pnpm-plugin-catalog@0.13.0': {}
 
   '@pnpm/exe.android-arm64@12.14.0':
     optional: true
@@ -182,20 +182,20 @@ catalogs:
       specifier: ^9.7.4
       version: 9.7.4
     '@ocelescope/api-client':
-      specifier: ^0.11.0
-      version: 0.11.0
+      specifier: ^0.13.0
+      version: 0.13.0
     '@ocelescope/api-config':
-      specifier: ^0.11.0
-      version: 0.11.0
+      specifier: ^0.13.0
+      version: 0.13.0
     '@ocelescope/core':
-      specifier: ^0.11.0
-      version: 0.11.0
+      specifier: ^0.13.0
+      version: 0.13.0
     '@ocelescope/management':
-      specifier: ^0.11.0
-      version: 0.11.0
+      specifier: ^0.13.0
+      version: 0.13.0
     '@ocelescope/resources':
-      specifier: ^0.11.0
-      version: 0.11.0
+      specifier: ^0.13.0
+      version: 0.13.0
     '@r4pm/components':
       specifier: ^0.4.0
       version: 0.4.1
@@ -221,8 +221,8 @@ catalogs:
       specifier: ^1.63.0
       version: 1.63.0
     next:
-      specifier: 16.4.3
-      version: 16.4.3
+      specifier: 16.4.5
+      version: 16.4.5
     orval:
       specifier: ^8.45.0
       version: 8.45.0
@@ -262,10 +262,10 @@ importers:
         version: 9.7.4(@mantine/core@9.7.4(@mantine/hooks@9.7.4(react@19.3.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@mantine/hooks@9.7.4(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@ocelescope/core':
         specifier: 'catalog:'
-        version: 0.11.0(665a283ec5fd7c20605030b14f3f18e3)
+        version: 0.13.0(8f012bdad535d7e328445932c1a0ce1c)
       '@ocelescope/management':
         specifier: 'catalog:'
-        version: 0.11.0(d82f76345aa9ce7280c9bed7838c5486)
+        version: 0.13.0(ea0d145f9c05a903b3c513d0ee9a112b)
       '@ocelescope/ocpn-editor':
         specifier: workspace:*
         version: link:../frontend-modules/ocpn-editor
@@ -277,7 +277,7 @@ importers:
         version: 12.12.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       next:
         specifier: 'catalog:'
-        version: 16.4.3(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        version: 16.4.5(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
         version: 19.3.1
@@ -321,16 +321,16 @@ importers:
     devDependencies:
       '@ocelescope/api-client':
         specifier: 'catalog:'
-        version: 0.11.0(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)(zustand@5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1)))
+        version: 0.13.0(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)(zustand@5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1)))
       '@ocelescope/api-config':
         specifier: 'catalog:'
-        version: 0.11.0(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@6.0.3)(zod@4.6.7)
+        version: 0.13.0(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@6.0.3)(zod@4.6.7)
       '@ocelescope/core':
         specifier: 'catalog:'
-        version: 0.11.0(665a283ec5fd7c20605030b14f3f18e3)
+        version: 0.13.0(8f012bdad535d7e328445932c1a0ce1c)
       '@ocelescope/resources':
         specifier: 'catalog:'
-        version: 0.11.0(8f74cc4c00a6008cd2fcaf9063e6b4e9)
+        version: 0.13.0(390017feb1a8bc2a0a15c03b14633fbb)
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.105.0(@types/react@19.3.0)(react@19.3.1)
@@ -432,6 +432,28 @@ packages:
     resolution: {integrity: sha512-Ox2kYyxy7NoXdKWdHeDEjZxClwzO4SKM8plAaVwmAJPxHMqA0rLOoAsa+hBDwRLpctf+ZRnAd/ykguuJidnaTA==}
     peerDependencies:
       solid-js: ^1.8
+
+  '@dnd-kit/accessibility@3.1.1':
+    resolution: {integrity: sha512-2P+YgaXF+gRsIihwwY1gCsQSYnu9Zyj2py8kY5fFvUM1qm2WA2u639R6YNVfU4GWr+ZM5mqEsfHZZLoRONbemw==}
+    peerDependencies:
+      react: '>=16.8.0'
+
+  '@dnd-kit/core@6.3.1':
+    resolution: {integrity: sha512-xkGBRQQab4RLwgXxoqETICr6S5JlogafbhNsidmrkVv2YRs5MLwpjoF2qpiGjQt8S9AoxtIV603s0GIUpY5eYQ==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+
+  '@dnd-kit/sortable@10.0.0':
+    resolution: {integrity: sha512-+xqhmIIzvAYMGfBYYnbKuNicfSsk4RksY2XdmJhT+HAC01nix6fHCztU68jooFiMUB01Ky3F0FyOvhG/BZrWkg==}
+    peerDependencies:
+      '@dnd-kit/core': ^6.3.0
+      react: '>=16.8.0'
+
+  '@dnd-kit/utilities@3.2.2':
+    resolution: {integrity: sha512-+MKAJEOfaBe5SmV6t34p80MMKhjvUz0vRrvVJbPT0WElzaOJ/1xs+D+KDv+tD/NE5ujfrChEcshd4fLn0wpiqg==}
+    peerDependencies:
+      react: '>=16.8.0'
 
   '@emnapi/runtime@1.11.3':
     resolution: {integrity: sha512-Xz4Tpyki7XyrpbUK1jR1AhdAdaXyhhY4lZ3neLodmhpuWfy2PAQN5B46sAiU4liOXGLkHypn/qU+jvfWSCYYLA==}
@@ -798,6 +820,15 @@ packages:
       react: ^19.2.0
       react-dom: ^19.2.0
 
+  '@mantine/dates@9.8.0':
+    resolution: {integrity: sha512-mHmr0uNJI888M0gU7Ga0ec6CtUurQDPst4WauEEqjgkb7uGxAHknL2XdmFshjqQ4UyTLKrsjVeK5DIhzofz/gg==}
+    peerDependencies:
+      '@mantine/core': 9.8.0
+      '@mantine/hooks': 9.8.0
+      dayjs: '>=1.0.0'
+      react: ^19.2.0
+      react-dom: ^19.2.0
+
   '@mantine/dropzone@9.7.4':
     resolution: {integrity: sha512-ZfYAU7Zna1oDoTmg7b2O/2mipdx1NEJDC7ipo8rHpzOQ/jqHARh1KPd8PJ9x16z0wWGqjnbw68gXwTIgjC6lDQ==}
     engines: {node: '>=22'}
@@ -857,72 +888,72 @@ packages:
   '@marko19907/string-to-color@1.0.2':
     resolution: {integrity: sha512-kADXIfypDWoCnqvqAjvgTm7curpHoigUpPVXKQY5fP2hUFfX72xx5H7ga4T7CwdBmIbYrbvU4zU/Al2NWPD+qQ==}
 
-  '@next/env@16.4.3':
-    resolution: {integrity: sha512-a7tz1QCcWWkwC/rPJcPMJk/UNRu9CFhDd3OHYE5hddbJrs8BqRTalxI6GlKCWEGzRLHN+S/B7a4PAHCtm25aBQ==}
+  '@next/env@16.4.5':
+    resolution: {integrity: sha512-JwSPwpdkZL5VMl2jA/q+JI8MZdweAL3xmw5/tb9y/TLtmS0YXZnmYDzSihwk8xTj1OL+WM53gTqaj96yuLp6Xw==}
 
-  '@next/swc-darwin-arm64@16.4.3':
-    resolution: {integrity: sha512-4yq5EXBt+VDtAZwTyfijaFp5D2C5oz3Ikw5a2kiX2K9nw72vrZX2q5UuAlkPtUMO1tQz6JTKpaKWjS7OOefTDQ==}
+  '@next/swc-darwin-arm64@16.4.5':
+    resolution: {integrity: sha512-W5TniBzWKASbNNwHZ/S/f1MxQUXU/LdjklVMWA0Ujbfl7SZnUzFls45hO0i/sF7Bx1jJBWp7WWmoQajXtX/O8A==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [darwin]
 
-  '@next/swc-darwin-x64@16.4.3':
-    resolution: {integrity: sha512-1Rvkn/LUhnEF8WxnRkOrqGhbwXui1bkWFxONKIbN+r7C+9KHDSZ+iUoj4CzymVMWUyZIyx9szcb9+kbKhD500A==}
+  '@next/swc-darwin-x64@16.4.5':
+    resolution: {integrity: sha512-uWq4qkHapBDS1oFltWS4YxTb9pLHAtLNcpbuK6SmRsebLYZqpBML/j/C0op+50JYGTpZgVL/DWNt/6oWlamrrw==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [darwin]
 
-  '@next/swc-linux-arm64-gnu@16.4.3':
-    resolution: {integrity: sha512-dCKpXErGg3abUM6t5JTJV/ottVBTStJB5lRJTbgdUdQaQ+jNHiK56Hsc0YAEg/rinSh42hYG3HWiYmEMdilnxg==}
+  '@next/swc-linux-arm64-gnu@16.4.5':
+    resolution: {integrity: sha512-FdRcyOx5u5P51mlAqLB9EXdd8jZO5fsdHtk4BAQSkqOywCsbTNN/rmw+jO7pnmjNdAtu2AG46NzbCL2FPDrrgw==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@next/swc-linux-arm64-musl@16.4.3':
-    resolution: {integrity: sha512-WwYbhWkhYBvBtib1K4W0kL8MW2snBD2A5b3SN4vPpqalZbZs5+bQ1yzAdepVoOqrFfEW3dmREy4Zs1MrWcrFbw==}
+  '@next/swc-linux-arm64-musl@16.4.5':
+    resolution: {integrity: sha512-cyvmmgtRXR8aGVT86wi9Py53IlfyCx7P2fZxuAXAoTummDnhKtUyjrMeXfapqp4qgD+gT5RqyGD/VfA16jEK7Q==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
 
-  '@next/swc-linux-x64-gnu@16.4.3':
-    resolution: {integrity: sha512-QymWvfUwDEC5/lpJOsxX5VAbyoR2D13+2Jsjz4be7gT4LPqEgdpkeLIR/HFfCLgKzoMhpJbp6I/JnogyNZHcaA==}
+  '@next/swc-linux-x64-gnu@16.4.5':
+    resolution: {integrity: sha512-hPc+Fl+N22DAvqZHq559NmamXboOX5Lu8I5Wl0DezfrhTk1Zz21NQeYoZDmNI/NjTcrdsVxM72Fzn2lI+Q+vAw==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@next/swc-linux-x64-musl@16.4.3':
-    resolution: {integrity: sha512-Vmjd9D7DpA4Vv3cUlr82QWgJD/BQZmns801vtC5VWHg6jCIA4a5vMKpQnfrM2pyCrp2eV0ENdUg4PlN3bAc2Yw==}
+  '@next/swc-linux-x64-musl@16.4.5':
+    resolution: {integrity: sha512-gbACYE8IP/jlprNTpiWXHb8N9CofOzpnEwH2SrIz1dUbiJf1FbDssDupCAPeP1Taxe8mgG20sGZamJI7KFOdZw==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
     libc: [musl]
 
-  '@next/swc-win32-arm64-msvc@16.4.3':
-    resolution: {integrity: sha512-lG1pPdPLk7gTyGb00n5JIMLdBJgjb+UEhSdZvFbhUMg0DyC6z4B7RnpSKF9VCd4imkLObVbXOFA0kFCpw7yFow==}
+  '@next/swc-win32-arm64-msvc@16.4.5':
+    resolution: {integrity: sha512-+8gj++ZMo8H20Xh2ijjNqyFk5LPLw0AC4Fs4Tq/G94rjjQXhOjN4jgSWsWKPFsyY26hfIeemJIwKtMxOsp5GBA==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [win32]
 
-  '@next/swc-win32-x64-msvc@16.4.3':
-    resolution: {integrity: sha512-NmQC9RkJdnPXRaMxtkCzobB3teVjqF33oSOnwDfi+XYGWWYpt+xlGK3mtktSKLbdjwaWbJu2OkkMiRFGUUncKg==}
+  '@next/swc-win32-x64-msvc@16.4.5':
+    resolution: {integrity: sha512-qNZj66pYXnaWLiF9R9GUbfBdrCv7kC6TaZfIwB2KH5WPc/8pEM3nVOj8hpQhWJU8S94rlH5MPDcX15+RrgUhiw==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
 
-  '@ocelescope/api-base@0.11.0':
-    resolution: {integrity: sha512-AAhJiScZuNasEyNzKQQqOsUILkENwILHOmAlsNA2DTe2ZtnYPUZwhVJS+h5xX9tJ03adkkHrHoD/3QwUB+PiCA==}
+  '@ocelescope/api-base@0.13.0':
+    resolution: {integrity: sha512-YEJuSY1cishiHafE1prAVZ+UKdykGGT25gs/lngX0+HmrirhsP+/Ir+ByztWlNJsPbiS2yGOTtOcws29VvQdLQ==}
     peerDependencies:
-      '@ocelescope/api-client': ^0.11.0
+      '@ocelescope/api-client': ^0.13.0
       '@tanstack/react-query': ^5.105.0
       axios: ^1.21.0
       react: ^19.3.1
       react-dom: ^19.3.1
 
-  '@ocelescope/api-client@0.11.0':
-    resolution: {integrity: sha512-rqcnAgYKZOk+UBsg+OhuuEGVw3VeYrcR/B8OTeLeC96gKRh7hsbd+peLDxrypcBNovxIiFWQqEEiir/E2wgPJw==}
+  '@ocelescope/api-client@0.13.0':
+    resolution: {integrity: sha512-AlIipWMp52achGSvA8wFp/Ju9Wbad/d9zUkz4laRbDtrl8SntWtY03lwUDFWP5PiAk2NXduknv2Fp17EktCcLA==}
     peerDependencies:
       axios: ^1.21.0
       react: ^19.3.1
@@ -930,61 +961,69 @@ packages:
       zod: ^4.6.7
       zustand: ^5.0.16
 
-  '@ocelescope/api-config@0.11.0':
-    resolution: {integrity: sha512-GBf4DLAnfh6KTR9AQs/MVddQTUKmpBAP85cA3hHgPywHeHO5DivDGH5V3uHRGMf0xPiD/9/hEGtSZ8xctGDxxg==}
+  '@ocelescope/api-config@0.13.0':
+    resolution: {integrity: sha512-4zbgFkKRm++hYPfQ4drsCVRLy8wpH0Fz58iO6L+rCpBh0CaEpy7TRPvsJv2dyU3hzoyryXuyFDJPicSDjgJyXQ==}
     peerDependencies:
       react: ^19.3.1
       react-dom: ^19.3.1
 
-  '@ocelescope/core@0.11.0':
-    resolution: {integrity: sha512-DO9kPAyb8tTq2d0NPDD8zCZkjRQiS3xMwjyzQB7Tz8MNBwORIXY+zwyLtoJOCFp37UGC/qRC0QkYCs9QFSWpkw==}
+  '@ocelescope/core@0.13.0':
+    resolution: {integrity: sha512-P2A5qIsBsXoaWaiJtTWrakgDPeeb2W8aLjosMEPDkEB6BndtUn8DBEMgC2TjV3El4TAr0kINBWUpezNv2GFZNg==}
     peerDependencies:
+      '@dnd-kit/core': ^6.3.1
+      '@dnd-kit/sortable': ^10.0.0
+      '@dnd-kit/utilities': ^3.2.2
       '@mantine/core': ^9.7.4
+      '@mantine/dates': ^9.7.4
       '@mantine/dropzone': ^9.7.4
       '@mantine/hooks': ^9.7.4
       '@mantine/notifications': ^9.7.4
       '@marko19907/string-to-color': ^1.0.2
-      '@ocelescope/api-base': ^0.11.0
-      '@ocelescope/api-client': ^0.11.0
-      '@ocelescope/resources': ^0.11.0
+      '@ocelescope/api-base': ^0.13.0
+      '@ocelescope/api-client': ^0.13.0
+      '@ocelescope/resources': ^0.13.0
       '@r4pm/components': ^0.4.0
       '@tanstack/react-query': ^5.105.0
       '@tanstack/react-query-devtools': ^5.105.0
       clsx: ^2.1.1
       content-disposition-attachment: ^0.3.1
       dayjs: ^1.11.23
+      echarts: ^6.1.0
+      echarts-for-react: ^3.0.6
       file-saver: ^2.0.5
       lucide-react: ^1.63.0
       mantine-datatable: ^9.4.0
-      next: 16.4.3
+      next: 16.4.5
       qs: ^6.17.0
       react: ^19.3.1
       react-dom: ^19.3.1
+      react-hook-form: ^7.91.0
       zod: ^4.6.7
       zustand: ^5.0.16
 
-  '@ocelescope/management@0.11.0':
-    resolution: {integrity: sha512-s4c46hEIK413nompYXCwd/UWb5gIN4unRd7x/f2NPvd29YiSUX0XaP7Zj8ogo4b3naFxViZshdobdsj3ZG16fw==}
+  '@ocelescope/management@0.13.0':
+    resolution: {integrity: sha512-9cVnakn9DOZiOMGay6sGotqmx/6tvNnyfhJCWleNaaV8jmzvh7xWMg7qTVF1JTI+GFtLn/PWzix9jMTeDRm6WA==}
     peerDependencies:
       '@mantine/core': ^9.7.4
       '@mantine/hooks': ^9.7.4
       '@marko19907/string-to-color': '*'
-      '@ocelescope/api-base': ^0.11.0
-      '@ocelescope/core': ^0.11.0
-      '@ocelescope/resources': ^0.11.0
+      '@ocelescope/api-base': ^0.13.0
+      '@ocelescope/core': ^0.13.0
+      '@ocelescope/resources': ^0.13.0
       dayjs: ^1.11.23
       lucide-react: ^1.63.0
       mantine-datatable: ^9.4.0
       react: ^19.3.1
       react-dom: ^19.3.1
 
-  '@ocelescope/resources@0.11.0':
-    resolution: {integrity: sha512-VmwB15RikQekAlqgKRK9rYBAM4zs/ByhzUAxLM5Y/QNQJrvEa3oOOUFlDZ8FoplieZXOwWKXz4nK/fb1KbUlPw==}
+  '@ocelescope/resources@0.13.0':
+    resolution: {integrity: sha512-kk8JpP0HvPVfoHrtgYYv6toNfWNv2wQOQWYiOldDiHmbb/kICtsRVJ3XGaqCFjlUU4MB5GaNcGwQe7/lvAT2DQ==}
     peerDependencies:
       '@floating-ui/react': ^0.27.18
       '@hpcc-js/wasm-graphviz': ^1.30.0
       '@mantine/core': ^9.7.4
-      '@ocelescope/api-base': ^0.11.0
+      '@mantine/hooks': ^9.7.4
+      '@ocelescope/api-base': ^0.13.0
       '@r4pm/components': ^0.4.0
       '@xyflow/react': ^12.12.0
       dayjs: ^1.11.23
@@ -992,7 +1031,7 @@ packages:
       file-saver: ^2.0.5
       lucide-react: ^1.63.0
       mantine-datatable: ^9.4.0
-      next: 16.4.3
+      next: 16.4.5
       react: ^19.3.1
       react-dom: ^19.3.1
       react-plotly.js: ^4.0.0
@@ -2610,6 +2649,15 @@ packages:
   earcut@3.2.4:
     resolution: {integrity: sha512-FHc6yNpnTORB0tM5kmZ03iD2mDuNakDE2lvf4Hw1XkfxtEHIGVi01B/GqUSwx+NcC1WGjidAfpTXzeALtPtfpg==}
 
+  echarts-for-react@3.0.6:
+    resolution: {integrity: sha512-4zqLgTGWS3JvkQDXjzkR1k1CHRdpd6by0988TWMJgnvDytegWLbeP/VNZmMa+0VJx2eD7Y632bi2JquXDgiGJg==}
+    peerDependencies:
+      echarts: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0
+      react: ^15.0.0 || >=16.0.0
+
+  echarts@6.1.0:
+    resolution: {integrity: sha512-q0yaFPggC9FUdsWH4blavRWFmxdrIodbkoKNAjJudAI6CA9gNPxHtV2RcZNEepZVlk4yvBYkOkbk6HIVpIyHZA==}
+
   elementary-circuits-directed-graph@1.3.1:
     resolution: {integrity: sha512-ZEiB5qkn2adYmpXGnJKkxT8uJHlW/mxmBpmeqawEHzPxh9HkLD4/1mFYX5l0On+f6rcPIt8/EWlRU2Vo3fX6dQ==}
 
@@ -3090,8 +3138,8 @@ packages:
   next-tick@1.1.0:
     resolution: {integrity: sha512-CXdUiJembsNjuToQvxayPZF9Vqht7hewsvy2sOWafLvi2awflj9mOC6bHIg50orX8IJvWKY9wYQ/zB2kogPslQ==}
 
-  next@16.4.3:
-    resolution: {integrity: sha512-OqxKTGi9u80FydydsMNYNjnuje9Au+kvHlt2GZ//ftdpDHm1dxKqAaENoOOTX5wKzn+9vaKUNIfZeyZUuLhCnA==}
+  next@16.4.5:
+    resolution: {integrity: sha512-rmdfsWosjTUO+6R0S3KokoIk6Kj0sWDRTe86tZHdqaWH/oXq/udX3/4xb+YQi7aWbyEFoglDU54kaifLCdXbBw==}
     engines: {node: '>=20.9.0'}
     hasBin: true
     peerDependencies:
@@ -3283,6 +3331,16 @@ packages:
     peerDependencies:
       '@types/react': '*'
       react: '>= 18'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
+  react-hook-form@7.92.0:
+    resolution: {integrity: sha512-O5ILyY5fYHN7N13Pfxpe55KboyNFsJdM03BHpshQkClJd8raugiAUGY7VjifITrfhVxyx81ko25azXCoayhf1w==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.8.0 || ^17 || ^18 || ^19
     peerDependenciesMeta:
       '@types/react':
         optional: true
@@ -3512,6 +3570,9 @@ packages:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
     engines: {node: '>=14'}
 
+  size-sensor@1.0.3:
+    resolution: {integrity: sha512-+k9mJ2/rQMiRmQUcjn+qznch260leIXY8r4FyYKKyRBO/s5UoeMAHGkCJyE1R/4wrIhTJONfyloY55SkE7ve3A==}
+
   solid-js@1.9.15:
     resolution: {integrity: sha512-EeiY2xfpZJqPLjXspVEKjAII4yv8NyG//NxZ3IpOFHdUNnnTyL0uJOeS9LWGvA7cFCz5y94cjFwYlmw5Luncsg==}
 
@@ -3684,6 +3745,9 @@ packages:
       unrun:
         optional: true
 
+  tslib@2.3.0:
+    resolution: {integrity: sha512-N82ooyxVNm6h1riLCoyS9e3fuJ3AMG2zIZs2Gd1ATcSFjSA23Q0fzjjZeh0jbJvWVDZ0cJT8yaNNaaXHzueNjg==}
+
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
@@ -3817,6 +3881,9 @@ packages:
   zod@4.6.7:
     resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
 
+  zrender@6.1.0:
+    resolution: {integrity: sha512-oEGMDB6pOP2S6OwRR4PdVv610zrjnA3Bh+JnSG12fYJlBKjtNAoEb5fSUoCOOINlH96I2fU38/A2UpRKs67xYQ==}
+
   zustand@4.5.7:
     resolution: {integrity: sha512-CHOUy7mu3lbD6o6LJLfllpjkzhHXSBlX8B9+qPddUsIfeF5S/UZ5q0kmCsnRqT1UHFQZchNFDDzMbQsuesHWlw==}
     engines: {node: '>=12.7.0'}
@@ -3901,6 +3968,31 @@ snapshots:
     dependencies:
       '@floating-ui/dom': 1.8.0
       solid-js: 1.9.15
+
+  '@dnd-kit/accessibility@3.1.1(react@19.3.1)':
+    dependencies:
+      react: 19.3.1
+      tslib: 2.8.1
+
+  '@dnd-kit/core@6.3.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      '@dnd-kit/accessibility': 3.1.1(react@19.3.1)
+      '@dnd-kit/utilities': 3.2.2(react@19.3.1)
+      react: 19.3.1
+      react-dom: 19.3.1(react@19.3.1)
+      tslib: 2.8.1
+
+  '@dnd-kit/sortable@10.0.0(@dnd-kit/core@6.3.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      '@dnd-kit/core': 6.3.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@dnd-kit/utilities': 3.2.2(react@19.3.1)
+      react: 19.3.1
+      tslib: 2.8.1
+
+  '@dnd-kit/utilities@3.2.2(react@19.3.1)':
+    dependencies:
+      react: 19.3.1
+      tslib: 2.8.1
 
   '@emnapi/runtime@1.11.3':
     dependencies:
@@ -4158,6 +4250,15 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
 
+  '@mantine/dates@9.8.0(@mantine/core@9.7.4(@mantine/hooks@9.7.4(react@19.3.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@mantine/hooks@9.7.4(react@19.3.1))(dayjs@1.11.23)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      '@mantine/core': 9.7.4(@mantine/hooks@9.7.4(react@19.3.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@mantine/hooks': 9.7.4(react@19.3.1)
+      clsx: 2.1.1
+      dayjs: 1.11.23
+      react: 19.3.1
+      react-dom: 19.3.1(react@19.3.1)
+
   '@mantine/dropzone@9.7.4(@mantine/core@9.7.4(@mantine/hooks@9.7.4(react@19.3.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@mantine/hooks@9.7.4(react@19.3.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
       '@mantine/core': 9.7.4(@mantine/hooks@9.7.4(react@19.3.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -4226,41 +4327,41 @@ snapshots:
     dependencies:
       esm-seedrandom: 3.0.5-esm.2
 
-  '@next/env@16.4.3': {}
+  '@next/env@16.4.5': {}
 
-  '@next/swc-darwin-arm64@16.4.3':
+  '@next/swc-darwin-arm64@16.4.5':
     optional: true
 
-  '@next/swc-darwin-x64@16.4.3':
+  '@next/swc-darwin-x64@16.4.5':
     optional: true
 
-  '@next/swc-linux-arm64-gnu@16.4.3':
+  '@next/swc-linux-arm64-gnu@16.4.5':
     optional: true
 
-  '@next/swc-linux-arm64-musl@16.4.3':
+  '@next/swc-linux-arm64-musl@16.4.5':
     optional: true
 
-  '@next/swc-linux-x64-gnu@16.4.3':
+  '@next/swc-linux-x64-gnu@16.4.5':
     optional: true
 
-  '@next/swc-linux-x64-musl@16.4.3':
+  '@next/swc-linux-x64-musl@16.4.5':
     optional: true
 
-  '@next/swc-win32-arm64-msvc@16.4.3':
+  '@next/swc-win32-arm64-msvc@16.4.5':
     optional: true
 
-  '@next/swc-win32-x64-msvc@16.4.3':
+  '@next/swc-win32-x64-msvc@16.4.5':
     optional: true
 
-  '@ocelescope/api-base@0.11.0(@ocelescope/api-client@0.11.0(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)(zustand@5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1))))(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.1))(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+  '@ocelescope/api-base@0.13.0(@ocelescope/api-client@0.13.0(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)(zustand@5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1))))(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.1))(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
-      '@ocelescope/api-client': 0.11.0(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)(zustand@5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1)))
+      '@ocelescope/api-client': 0.13.0(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)(zustand@5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1)))
       '@tanstack/react-query': 5.105.0(@types/react@19.3.0)(react@19.3.1)
       axios: 1.21.0(debug@4.4.3)
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
 
-  '@ocelescope/api-client@0.11.0(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)(zustand@5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1)))':
+  '@ocelescope/api-client@0.13.0(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)(zustand@5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1)))':
     dependencies:
       axios: 1.21.0(debug@4.4.3)
       react: 19.3.1
@@ -4268,7 +4369,7 @@ snapshots:
       zod: 4.6.7
       zustand: 5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1))
 
-  '@ocelescope/api-config@0.11.0(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@6.0.3)(zod@4.6.7)':
+  '@ocelescope/api-config@0.13.0(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@6.0.3)(zod@4.6.7)':
     dependencies:
       orval: 8.45.0(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.1))(typescript@6.0.3)(zod@4.6.7)
       react: 19.3.1
@@ -4291,52 +4392,60 @@ snapshots:
       - typescript
       - zod
 
-  '@ocelescope/core@0.11.0(665a283ec5fd7c20605030b14f3f18e3)':
+  '@ocelescope/core@0.13.0(8f012bdad535d7e328445932c1a0ce1c)':
     dependencies:
+      '@dnd-kit/core': 6.3.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@dnd-kit/sortable': 10.0.0(@dnd-kit/core@6.3.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)
+      '@dnd-kit/utilities': 3.2.2(react@19.3.1)
       '@mantine/core': 9.7.4(@mantine/hooks@9.7.4(react@19.3.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@mantine/dates': 9.8.0(@mantine/core@9.7.4(@mantine/hooks@9.7.4(react@19.3.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@mantine/hooks@9.7.4(react@19.3.1))(dayjs@1.11.23)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@mantine/dropzone': 9.7.4(@mantine/core@9.7.4(@mantine/hooks@9.7.4(react@19.3.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@mantine/hooks@9.7.4(react@19.3.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@mantine/hooks': 9.7.4(react@19.3.1)
       '@mantine/notifications': 9.7.4(@mantine/core@9.7.4(@mantine/hooks@9.7.4(react@19.3.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@mantine/hooks@9.7.4(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@marko19907/string-to-color': 1.0.2
-      '@ocelescope/api-base': 0.11.0(@ocelescope/api-client@0.11.0(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)(zustand@5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1))))(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.1))(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@ocelescope/api-client': 0.11.0(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)(zustand@5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1)))
-      '@ocelescope/resources': 0.11.0(8f74cc4c00a6008cd2fcaf9063e6b4e9)
+      '@ocelescope/api-base': 0.13.0(@ocelescope/api-client@0.13.0(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)(zustand@5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1))))(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.1))(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@ocelescope/api-client': 0.13.0(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)(zustand@5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1)))
+      '@ocelescope/resources': 0.13.0(390017feb1a8bc2a0a15c03b14633fbb)
       '@r4pm/components': 0.4.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(plotly.js@4.1.1)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@tanstack/react-query': 5.105.0(@types/react@19.3.0)(react@19.3.1)
       '@tanstack/react-query-devtools': 5.105.0(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.1))(@types/react@19.3.0)(csstype@3.2.3)(react@19.3.1)
       clsx: 2.1.1
       content-disposition-attachment: 0.3.1
       dayjs: 1.11.23
+      echarts: 6.1.0
+      echarts-for-react: 3.0.6(echarts@6.1.0)(react@19.3.1)
       file-saver: 2.0.5
       lucide-react: 1.63.0(@types/react@19.3.0)(react@19.3.1)
       mantine-datatable: 9.4.0(@mantine/core@9.7.4(@mantine/hooks@9.7.4(react@19.3.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@mantine/hooks@9.7.4(react@19.3.1))(clsx@2.1.1)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      next: 16.4.3(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      next: 16.4.5(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       qs: 6.17.0
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
+      react-hook-form: 7.92.0(@types/react@19.3.0)(react@19.3.1)
       zod: 4.6.7
       zustand: 5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1))
 
-  '@ocelescope/management@0.11.0(d82f76345aa9ce7280c9bed7838c5486)':
+  '@ocelescope/management@0.13.0(ea0d145f9c05a903b3c513d0ee9a112b)':
     dependencies:
       '@mantine/core': 9.7.4(@mantine/hooks@9.7.4(react@19.3.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@mantine/hooks': 9.7.4(react@19.3.1)
       '@marko19907/string-to-color': 1.0.2
-      '@ocelescope/api-base': 0.11.0(@ocelescope/api-client@0.11.0(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)(zustand@5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1))))(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.1))(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@ocelescope/core': 0.11.0(665a283ec5fd7c20605030b14f3f18e3)
-      '@ocelescope/resources': 0.11.0(8f74cc4c00a6008cd2fcaf9063e6b4e9)
+      '@ocelescope/api-base': 0.13.0(@ocelescope/api-client@0.13.0(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)(zustand@5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1))))(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.1))(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@ocelescope/core': 0.13.0(8f012bdad535d7e328445932c1a0ce1c)
+      '@ocelescope/resources': 0.13.0(390017feb1a8bc2a0a15c03b14633fbb)
       dayjs: 1.11.23
       lucide-react: 1.63.0(@types/react@19.3.0)(react@19.3.1)
       mantine-datatable: 9.4.0(@mantine/core@9.7.4(@mantine/hooks@9.7.4(react@19.3.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@mantine/hooks@9.7.4(react@19.3.1))(clsx@2.1.1)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
 
-  '@ocelescope/resources@0.11.0(8f74cc4c00a6008cd2fcaf9063e6b4e9)':
+  '@ocelescope/resources@0.13.0(390017feb1a8bc2a0a15c03b14633fbb)':
     dependencies:
       '@floating-ui/react': 0.27.20(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@hpcc-js/wasm-graphviz': 1.30.0
       '@mantine/core': 9.7.4(@mantine/hooks@9.7.4(react@19.3.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@ocelescope/api-base': 0.11.0(@ocelescope/api-client@0.11.0(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)(zustand@5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1))))(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.1))(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@mantine/hooks': 9.7.4(react@19.3.1)
+      '@ocelescope/api-base': 0.13.0(@ocelescope/api-client@0.13.0(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)(zustand@5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1))))(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.1))(axios@1.21.0(debug@4.4.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@r4pm/components': 0.4.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(plotly.js@4.1.1)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@xyflow/react': 12.12.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       dayjs: 1.11.23
@@ -4346,7 +4455,7 @@ snapshots:
       jspdf: 4.2.1
       lucide-react: 1.63.0(@types/react@19.3.0)(react@19.3.1)
       mantine-datatable: 9.4.0(@mantine/core@9.7.4(@mantine/hooks@9.7.4(react@19.3.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@mantine/hooks@9.7.4(react@19.3.1))(clsx@2.1.1)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      next: 16.4.3(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      next: 16.4.5(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
       react-plotly.js: 4.1.0(plotly.js@4.1.1)(react@19.3.1)
@@ -5994,6 +6103,18 @@ snapshots:
 
   earcut@3.2.4: {}
 
+  echarts-for-react@3.0.6(echarts@6.1.0)(react@19.3.1):
+    dependencies:
+      echarts: 6.1.0
+      fast-deep-equal: 3.1.3
+      react: 19.3.1
+      size-sensor: 1.0.3
+
+  echarts@6.1.0:
+    dependencies:
+      tslib: 2.3.0
+      zrender: 6.1.0
+
   elementary-circuits-directed-graph@1.3.1:
     dependencies:
       strongly-connected-components: 1.0.1
@@ -6542,9 +6663,9 @@ snapshots:
 
   next-tick@1.1.0: {}
 
-  next@16.4.3(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
+  next@16.4.5(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
     dependencies:
-      '@next/env': 16.4.3
+      '@next/env': 16.4.5
       '@swc/helpers': 0.5.23
       baseline-browser-mapping: 2.11.26
       caniuse-lite: 1.0.30001812
@@ -6553,14 +6674,14 @@ snapshots:
       react-dom: 19.3.1(react@19.3.1)
       styled-jsx: 5.1.6(react@19.3.1)
     optionalDependencies:
-      '@next/swc-darwin-arm64': 16.4.3
-      '@next/swc-darwin-x64': 16.4.3
-      '@next/swc-linux-arm64-gnu': 16.4.3
-      '@next/swc-linux-arm64-musl': 16.4.3
-      '@next/swc-linux-x64-gnu': 16.4.3
-      '@next/swc-linux-x64-musl': 16.4.3
-      '@next/swc-win32-arm64-msvc': 16.4.3
-      '@next/swc-win32-x64-msvc': 16.4.3
+      '@next/swc-darwin-arm64': 16.4.5
+      '@next/swc-darwin-x64': 16.4.5
+      '@next/swc-linux-arm64-gnu': 16.4.5
+      '@next/swc-linux-arm64-musl': 16.4.5
+      '@next/swc-linux-x64-gnu': 16.4.5
+      '@next/swc-linux-x64-musl': 16.4.5
+      '@next/swc-win32-arm64-msvc': 16.4.5
+      '@next/swc-win32-x64-msvc': 16.4.5
       sharp: 0.35.5(@types/node@26.6.5)
     transitivePeerDependencies:
       - '@babel/core'
@@ -6840,6 +6961,12 @@ snapshots:
     dependencies:
       attr-accept: 4.0.0
       file-selector: 5.0.1
+      react: 19.3.1
+    optionalDependencies:
+      '@types/react': 19.3.0
+
+  react-hook-form@7.92.0(@types/react@19.3.0)(react@19.3.1):
+    dependencies:
       react: 19.3.1
     optionalDependencies:
       '@types/react': 19.3.0
@@ -7129,6 +7256,8 @@ snapshots:
 
   signal-exit@4.1.0: {}
 
+  size-sensor@1.0.3: {}
+
   solid-js@1.9.15:
     dependencies:
       csstype: 3.2.3
@@ -7284,6 +7413,8 @@ snapshots:
       - oxc-resolver
       - vue-tsc
 
+  tslib@2.3.0: {}
+
   tslib@2.8.1: {}
 
   type-fest@5.10.0:
@@ -7401,6 +7532,10 @@ snapshots:
       yuku-core: 0.19.0
 
   zod@4.6.7: {}
+
+  zrender@6.1.0:
+    dependencies:
+      tslib: 2.3.0
 
   zustand@4.5.7(@types/react@19.3.0)(react@19.3.1):
     dependencies:
