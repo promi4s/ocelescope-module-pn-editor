@@ -16,9 +16,18 @@ from ocelescope_module_ocpn_editor.util.simulation.objects import belong_togethe
 
 
 def candidates(transition: SimTransition, object_type: str) -> list[dict]:
-    """Objects that are in every input place of `object_type`, in the order of the first place."""
+    """
+    Objects that are in every input place of `object_type` and meet the transition's conditions on that type,
+    in the order of the first place. The conditions are per object, so filtering the candidates is the same as
+    requiring every bound object to meet them.
+    """
     first, *others = transition.input_places[object_type]
-    return [obj for key, obj in first.marking.items() if all(key in place.marking for place in others)]
+    conditions = transition.guards.get(object_type, [])
+    return [
+        obj
+        for key, obj in first.marking.items()
+        if all(key in place.marking for place in others) and all(c.holds(obj) for c in conditions)
+    ]
 
 
 def _subsets(pool: list[dict], low: int, high: int, rng: random.Random, limit: int) -> list[list[dict]]:

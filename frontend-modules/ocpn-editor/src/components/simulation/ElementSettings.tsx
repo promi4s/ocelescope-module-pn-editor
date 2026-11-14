@@ -12,9 +12,11 @@ import {
   ArrowUpWideNarrow,
   Boxes,
   CircleDot,
+  Funnel,
   ListChecks,
   LogIn,
   MousePointerClick,
+  PenLine,
   Plus,
   RotateCcw,
   Square,
@@ -35,6 +37,12 @@ import {
   setArrival,
   setPrioritized,
 } from "./SimulationOptions";
+import {
+  ConditionsEditor,
+  describeCondition,
+  describeUpdate,
+  UpdatesEditor,
+} from "./AttributeSettings";
 import {
   DelayInput,
   describeDelay,
@@ -108,6 +116,9 @@ const TransitionSettings = ({
   // silent transitions take no time unless it is set for them explicitly
   const silent = !net.petri_net.transitions.find((t) => t.id === id)?.label;
   const counts = config.object_counts?.[id];
+  const conditions = config.guards?.[id] ?? [];
+  const updates = config.attribute_updates?.[id] ?? [];
+  const customized = !!(delay || duration || counts || conditions.length || updates.length);
 
   return (
     <Stack gap="xs">
@@ -116,13 +127,13 @@ const TransitionSettings = ({
         kind="Transition"
         name={transitionName(net, id)}
         action={
-          (delay || duration || counts) && (
-            <Tooltip label="Reset delay, duration and object numbers" withArrow>
+          customized && (
+            <Tooltip label="Reset this transition's settings" withArrow>
               <ActionIcon
                 variant="subtle"
                 color="gray"
                 size="sm"
-                aria-label="Reset delay, duration and object numbers"
+                aria-label="Reset this transition's settings"
                 disabled={disabled}
                 onClick={() => onChange(resetTransition(config, id))}
               >
@@ -196,6 +207,38 @@ const TransitionSettings = ({
                 object_counts: value ? { ...rest, [id]: value } : rest,
               });
             }}
+            disabled={disabled}
+          />
+        </SettingsSection>
+
+        <SettingsSection
+          value="conditions"
+          icon={<Funnel size={ICON} />}
+          title="Conditions"
+          summary={conditions.length ? conditions.map(describeCondition).join(" and ") : "None"}
+          description="Fires only with input objects whose attributes meet all conditions."
+        >
+          <ConditionsEditor
+            net={net}
+            config={config}
+            onChange={onChange}
+            transition={id}
+            disabled={disabled}
+          />
+        </SettingsSection>
+
+        <SettingsSection
+          value="updates"
+          icon={<PenLine size={ICON} />}
+          title="Attribute updates"
+          summary={updates.length ? updates.map(describeUpdate).join(", ") : "None"}
+          description="Changes attributes of its input and created objects when an event starts."
+        >
+          <UpdatesEditor
+            net={net}
+            config={config}
+            onChange={onChange}
+            transition={id}
             disabled={disabled}
           />
         </SettingsSection>
@@ -299,6 +342,8 @@ const CustomizedOverview = ({
         config.delays?.[id] ||
         config.durations?.[id] ||
         config.object_counts?.[id] ||
+        config.guards?.[id]?.length ||
+        config.attribute_updates?.[id]?.length ||
         priority.includes(id),
     );
   const places = net.petri_net.places
@@ -347,6 +392,10 @@ const CustomizedOverview = ({
                     `Duration: ${describeDelay(config.durations[id], unit)}`,
                   config.object_counts?.[id] &&
                     describeObjectCounts(config.object_counts[id]),
+                  !!config.guards?.[id]?.length &&
+                    `If ${config.guards[id].map(describeCondition).join(" and ")}`,
+                  !!config.attribute_updates?.[id]?.length &&
+                    config.attribute_updates[id].map(describeUpdate).join(", "),
                   priority.includes(id) &&
                     "Prioritized",
                 ]),

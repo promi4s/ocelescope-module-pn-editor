@@ -1,5 +1,4 @@
 import {
-  Badge,
   Accordion,
   Checkbox,
   Group,
@@ -25,6 +24,10 @@ import type {
   SimulationConfig,
   SimulationConfigTimeUnit,
 } from "../../api/ocpnEditor";
+import {
+  describeObjectAttributes,
+  ObjectAttributesSettings,
+} from "./AttributeSettings";
 import { PrioritySettings } from "./SimulationOptions";
 
 const current_day = () => {
@@ -68,7 +71,7 @@ export const transitionName = (net: ObjectCentricPetriNet, id: string) => {
   return transition?.label || `${id} (silent)`;
 };
 
-/** Removes the delay, duration and object counts of a transition. */
+/** Removes the transition's own settings: delay, duration, object counts, conditions and attribute updates. */
 export const resetTransition = (
   config: SimulationConfig,
   transition: string,
@@ -76,7 +79,9 @@ export const resetTransition = (
   const { [transition]: _delay, ...delays } = config.delays ?? {};
   const { [transition]: _duration, ...durations } = config.durations ?? {};
   const { [transition]: _count, ...object_counts } = config.object_counts ?? {};
-  return { ...config, delays, durations, object_counts };
+  const { [transition]: _guard, ...guards } = config.guards ?? {};
+  const { [transition]: _update, ...attribute_updates } = config.attribute_updates ?? {};
+  return { ...config, delays, durations, object_counts, guards, attribute_updates };
 };
 
 /** Group of collapsible settings sections; several can be open at once. */
@@ -208,9 +213,6 @@ export const GeneralSettings = ({
     distribution: "fixed",
     value: 1,
   };
-  const objectTypes = Array.from(
-    new Set(Object.values(net.place_object_type)),
-  ).sort();
   const transitionIds = new Set(net.petri_net.transitions.map((t) => t.id));
   const prioritized = (config.activity_priority ?? []).filter((id) =>
     transitionIds.has(id),
@@ -225,22 +227,15 @@ export const GeneralSettings = ({
         value="object-types"
         icon={<Boxes size={ICON} />}
         title="Object types"
-        summary={objectTypes.length ? objectTypes.join(", ") : "None yet"}
-        description="Object attributes will be editable here."
+        summary={describeObjectAttributes(net, config)}
+        description="Attributes of the objects and their values when an object is created. Transitions can check and change them (Node tab)."
       >
-        {objectTypes.length === 0 ? (
-          <Text size="xs" c="dimmed">
-            Add a place to create an object type.
-          </Text>
-        ) : (
-          <Group gap={4}>
-            {objectTypes.map((type) => (
-              <Badge key={type} variant="light" color="gray" tt="none">
-                {type}
-              </Badge>
-            ))}
-          </Group>
-        )}
+        <ObjectAttributesSettings
+          net={net}
+          config={config}
+          onChange={onChange}
+          disabled={disabled}
+        />
       </SettingsSection>
 
       <SettingsSection

@@ -1,6 +1,11 @@
 """The net as the simulation sees it: places holding objects, transitions with their arcs grouped by object type."""
 from dataclasses import dataclass, field
-from ocelescope_module_ocpn_editor.model.simulation.simulation_config import DelayConfig, ObjectCount
+from ocelescope_module_ocpn_editor.model.simulation.simulation_config import (
+    AttributeCondition,
+    AttributeUpdate,
+    DelayConfig,
+    ObjectCount,
+)
 from ocelescope_module_ocpn_editor.util.simulation.objects import object_key
 
 # A binding maps each input object type of a transition to the objects it consumes,
@@ -34,6 +39,8 @@ class SimTransition:
     variable_input_types: set[str]  # input types with at least one variable arc
     variable_output_types: set[str]  # output types with at least one variable arc
     counts: dict[str, ObjectCount]  # object type -> how many objects to bind or create
+    guards: dict[str, list[AttributeCondition]] = field(default_factory=dict)  # input type -> conditions
+    updates: list[AttributeUpdate] = field(default_factory=list)  # applied when an event starts
 
     @property
     def created_types(self) -> list[str]:

@@ -52,6 +52,98 @@ class ArrivalConfig(BaseModel):
         return rng.expovariate(self.value) if self.mode == "rate" else self.value
 
 
+# Object attributes, guards and attribute updates follow qel_simulation's object attributes (object_types_attributes,
+# initial_attributes), object guards and InstructionObjectAttributeUpdate, as settings instead of Python code.
+
+AttributeValue = bool | int | float | str
+AttributeType = Literal["number", "text", "boolean"]
+
+
+class AttributeOption(BaseModel):
+    """One possible initial value of an attribute, drawn with probability proportional to its weight."""
+    value: AttributeValue
+    weight: float = Field(default=1, gt=0)
+
+
+class ObjectAttributeConfig(BaseModel):
+    """An attribute of an object type and how its value is set when an object is created."""
+    name: str = Field(min_length=1)
+    type: AttributeType = "text"
+    initial: Literal["fixed", "choice", "uniform"] = Field(
+        default="fixed",
+        description="'fixed': `value`. 'choice': one of `options`, by weight. 'uniform': between `minimum` and `maximum` (numbers).",
+    )
+    value: AttributeValue | None = None
+    options: list[AttributeOption] = []
+    minimum: float = 0
+    maximum: float = 1
+    integer: bool = Field(default=False, description="'uniform': draw whole numbers.")
+
+    @model_validator(mode="after")
+    def _check(self):
+        if self.initial == "uniform":
+            if self.type != "number":
+                raise ValueError(f"attribute '{self.name}': a uniform initial value needs a number attribute")
+            if self.maximum < self.minimum:
+                raise ValueError(f"attribute '{self.name}': maximum must not be smaller than minimum")
+        if self.initial == "choice" and not self.options:
+            raise ValueError(f"attribute '{self.name}': add at least one option")
+        return self
+
+    def sample(self, rng: random.Random) -> AttributeValue | None:
+        if self.initial == "choice":
+            return rng.choices([o.value for o in self.options], weights=[o.weight for o in self.options])[0]
+        if self.initial == "uniform":
+            if self.integer:
+                return rng.randint(int(self.minimum), int(self.maximum))
+            return rng.uniform(self.minimum, self.maximum)
+        return self.value
+
+
+_COMPARE = {
+    "==": lambda a, b: a == b,
+    "!=": lambda a, b: a != b,
+    "<": lambda a, b: a < b,
+    "<=": lambda a, b: a <= b,
+    ">": lambda a, b: a > b,
+    ">=": lambda a, b: a >= b,
+}
+
+
+class AttributeCondition(BaseModel):
+    """Condition on an attribute of the input objects of one type: every bound object of that type must meet it."""
+    object_type: str
+    attribute: str
+    operator: Literal["==", "!=", "<", "<=", ">", ">="] = "=="
+    value: AttributeValue
+
+    def holds(self, obj: dict) -> bool:
+        current = obj.get("attributes", {}).get(self.attribute)
+        if current is None:
+            return False
+        try:
+            return _COMPARE[self.operator](current, self.value)
+        except TypeError:  # e.g. comparing text with a number
+            return False
+
+
+class AttributeUpdate(BaseModel):
+    """Sets (or, for numbers, adds to) an attribute of the bound and created objects of one type when an event starts."""
+    object_type: str
+    attribute: str
+    operation: Literal["set", "add"] = "set"
+    value: AttributeValue
+
+    def apply(self, current: AttributeValue | None) -> AttributeValue:
+        if self.operation == "add":
+            if isinstance(current, bool) or not isinstance(current, (int, float)):
+                current = 0
+            if isinstance(self.value, bool) or not isinstance(self.value, (int, float)):
+                raise ValueError(f"'add' to attribute '{self.attribute}' needs a number")
+            return current + self.value
+        return self.value
+
+
 class SimulationConfig(BaseModel):
     duration: float = Field(default=500, ge=0)
     # A firing: enabled --delay--> start (inputs consumed) --duration--> end (outputs produced).
@@ -76,6 +168,15 @@ class SimulationConfig(BaseModel):
         description="Chance that the highest-priority enabled transition is chosen instead of a random one.",
     )
     arrivals: dict[str, ArrivalConfig] = Field(default={}, description="Per place id: objects arriving over time.")
+    object_attributes: dict[str, list[ObjectAttributeConfig]] = Field(
+        default={}, description="Per object type: its attributes and their initial values."
+    )
+    guards: dict[str, list[AttributeCondition]] = Field(
+        default={}, description="Per transition id: conditions on input object attributes; all must hold to fire."
+    )
+    attribute_updates: dict[str, list[AttributeUpdate]] = Field(
+        default={}, description="Per transition id: attribute changes when its events start."
+    )
     seed: int | None = None
     start_time: datetime = Field(default_factory=lambda: datetime.now().replace(hour=0, minute=0, second=0, microsecond=0))
     time_unit: Literal["seconds", "minutes", "hours", "days"] = "minutes"

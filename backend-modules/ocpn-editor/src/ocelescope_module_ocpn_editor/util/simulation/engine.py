@@ -59,9 +59,21 @@ class Engine:
     # ---------------------------------------------------------------- objects
 
     def new_object(self, object_type: str) -> dict:
+        """A new object with the initial values of its type's attributes."""
         obj = self.factory.create(object_type)
+        obj["created_at"] = self.clock
+        obj["attributes"] = {a.name: a.sample(self.rng) for a in self.config.object_attributes.get(object_type, [])}
+        obj["initial_attributes"] = dict(obj["attributes"])
+        obj["attribute_changes"] = []  # (time, attribute, value) after creation, for the log
         self.objects.append(obj)
         return obj
+
+    def _update_attributes(self, transition: SimTransition, objects_by_type: dict[str, list[dict]]):
+        for update in transition.updates:
+            for obj in objects_by_type.get(update.object_type, []):
+                value = update.apply(obj["attributes"].get(update.attribute))
+                obj["attributes"][update.attribute] = value
+                obj["attribute_changes"].append((self.clock, update.attribute, value))
 
     def put_initial(self, place: SimPlace, number: int):
         for _ in range(number):
@@ -148,6 +160,13 @@ class Engine:
             for other in consumed + new[i + 1:]:
                 if other["object_type"] != obj["object_type"]:
                     link(obj, other)
+
+        if transition.updates:
+            objects_by_type: dict[str, list[dict]] = {}
+            for group in (binding, created):
+                for object_type, objects in group.items():
+                    objects_by_type.setdefault(object_type, []).extend(objects)
+            self._update_attributes(transition, objects_by_type)
 
         duration = transition.duration.sample(self.rng)
         firing = Firing(next(self._firing_ids), transition, self.clock, self.clock + duration, binding, created)
