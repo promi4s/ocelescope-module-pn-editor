@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi import APIRouter, Body, HTTPException, UploadFile
+import json
 import tempfile
 import os
 from r4pm.petri_net import PetriNet as PnmlPetriNet, export_pnml, import_pnml
@@ -15,10 +16,10 @@ from ocelescope_module_ocpn_editor.model.editor.editor_ocpn import (
     Ocpn,
     OcpnImportResponse,
 )
-from ocelescope import PetriNet
+from ocelescope import OCEL, PetriNet
 from ocelescope_module_ocpn_editor.model.editor.editor_pn import ClassicPetriNet
 from ocelescope_backend.app.dependencies import ApiOcel, ApiSession
-from typing import Literal, cast
+from typing import Any, Literal, cast
 from ocelescope_module_ocpn_editor.util.simulation import SimulationRun, stream_simulation
 from ocelescope_module_ocpn_editor.model.simulation.simulation_result import SimulationResult
 from ocelescope_module_ocpn_editor.model.simulation.simulation_config import SimulationRequest
@@ -143,6 +144,7 @@ async def load_from_session(
         return convert_classic_to_ocpn(classic.places, classic.transitions, classic.arcs)
     petri_net = session.load_resource(resource_id, PetriNet)
     return convert_from_OCPN(petri_net)
+    
 
 
 # ============================================
@@ -173,3 +175,27 @@ def simulate_ocpn_stream(request: SimulationRequest) -> StreamingResponse:
         # keep proxies (Next.js rewrites, nginx) from compressing or buffering the stream
         headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
     )
+
+
+@router.post("/simulation/session", operation_id="addSimulatedOcel")
+def add_simulated_ocel(
+    session: ApiSession,
+    name: str,
+    ocel: dict[str, Any] = Body(..., description="OCEL 2.0 JSON of a simulation result (SimulationResult.ocel)."),
+) -> str:
+    """Adds a simulated event log to the session as a new OCEL and returns its id."""
+    with tempfile.NamedTemporaryFile("w", suffix=".jsonocel", delete=False, encoding="utf-8") as tmp:
+        json.dump(ocel, tmp)
+        tmp_path = tmp.name
+    try:
+        log = OCEL.read(tmp_path)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid OCEL: {e}")
+    finally:
+        os.unlink(tmp_path)
+    try:
+        return session.add_ocel(log, name=name)
+    finally:
+        log.close()
+
+

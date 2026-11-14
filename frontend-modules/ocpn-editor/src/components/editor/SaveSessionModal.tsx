@@ -5,17 +5,22 @@ export const SaveSessionModal = ({
   opened,
   onClose,
   onSave,
+  title = "Save to Session",
+  namePrefix = "ocpn_editor",
 }: {
   opened: boolean;
   onClose: () => void;
   onSave: (name: string) => void;
+  title?: string;
+  /** default names are `<namePrefix>_<n>` */
+  namePrefix?: string;
 }) => {
   const [name, setName] = useState("");
   const [saveCount, setSaveCount] = useState(0);
-  const defaultName = `ocpn_editor_${saveCount}`;
+  const defaultName = `${namePrefix}_${saveCount}`;
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Save to Session">
+    <Modal opened={opened} onClose={onClose} title={title}>
       <Stack>
         <TextInput
           label="Name"
@@ -31,7 +36,7 @@ export const SaveSessionModal = ({
             onClose();
           }}
         >
-          Save to Session
+          {title}
         </Button>
       </Stack>
     </Modal>

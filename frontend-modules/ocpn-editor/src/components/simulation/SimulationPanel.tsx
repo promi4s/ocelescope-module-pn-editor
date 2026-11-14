@@ -1,5 +1,18 @@
-import { Badge, Box, Button, Group, Loader, Stack, Tabs, Text } from "@mantine/core";
 import {
+  ActionIcon,
+  Badge,
+  Box,
+  Button,
+  Group,
+  Loader,
+  Stack,
+  Tabs,
+  Text,
+  Tooltip,
+} from "@mantine/core";
+import { notifications } from "@mantine/notifications";
+import {
+  DatabaseArrowDown,
   DownloadIcon,
   MousePointerClick,
   PlayIcon,
@@ -12,7 +25,9 @@ import type {
   OcpnImportResponse as ObjectCentricPetriNet,
   SimulationConfig,
 } from "../../api/ocpnEditor";
+import { useAddSimulatedOcel } from "../../api/ocpnEditor";
 import { downloadFile } from "../../lib/download";
+import { SaveSessionModal } from "../editor/SaveSessionModal";
 import { ElementSettings } from "./ElementSettings";
 import { EventsTable } from "./EventsTable";
 import { SimulationProgressCard } from "./SimulationProgressCard";
@@ -47,6 +62,26 @@ export const SimulationPanel = ({
   }, [selectedNodeIds]);
 
   const { result, progress, running, run, cancel } = useSimulation();
+  const [sessionModalOpened, setSessionModalOpened] = useState(false);
+  const { mutateAsync: addSimulatedOcel, isPending: addingToSession } =
+    useAddSimulatedOcel();
+
+  const handleAddToSession = async (name: string) => {
+    if (!result) return;
+    try {
+      await addSimulatedOcel({ data: result.ocel, params: { name } });
+      notifications.show({
+        title: "Added to session",
+        message: `The simulated event log "${name}" is now an OCEL of the session.`,
+      });
+    } catch (error) {
+      notifications.show({
+        title: "Could not add to session",
+        message: error instanceof Error ? error.message : "The event log could not be added.",
+        color: "red",
+      });
+    }
+  };
 
   const handleRun = () => {
     setSection("results");
@@ -164,30 +199,57 @@ export const SimulationPanel = ({
           borderTop: "1px solid var(--mantine-color-default-border)",
         }}
       >
-        <Group grow gap="xs">
-          {running ? (
-            <Button
-              color="red"
-              variant="light"
-              leftSection={<SquareIcon size={14} />}
-              onClick={cancel}
-            >
-              Cancel
-            </Button>
-          ) : (
-            <Button leftSection={<PlayIcon size={16} />} onClick={handleRun}>
-              Run simulation
-            </Button>
-          )}
+        {running ? (
           <Button
-            variant="default"
-            leftSection={<DownloadIcon size={16} />}
-            disabled={!result}
-            onClick={handleDownloadLog}
+            fullWidth
+            color="red"
+            variant="light"
+            leftSection={<SquareIcon size={14} />}
+            onClick={cancel}
           >
-            Export log
+            Cancel
           </Button>
+        ) : (
+          <Button
+            fullWidth
+            leftSection={<PlayIcon size={16} />}
+            onClick={handleRun}
+          >
+            Run simulation
+          </Button>
+        )}
+        <Group justify="center" gap="xs" mt="xs" wrap="nowrap">
+          <Tooltip label="Export log (OCEL 2.0 JSON)" withArrow>
+            <ActionIcon
+              variant="default"
+              size="lg"
+              aria-label="Export log"
+              disabled={!result}
+              onClick={handleDownloadLog}
+            >
+              <DownloadIcon size={16} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="Add log to session" withArrow>
+            <ActionIcon
+              variant="default"
+              size="lg"
+              aria-label="Add log to session"
+              disabled={!result || running}
+              loading={addingToSession}
+              onClick={() => setSessionModalOpened(true)}
+            >
+              <DatabaseArrowDown size={16} />
+            </ActionIcon>
+          </Tooltip>
         </Group>
+        <SaveSessionModal
+          opened={sessionModalOpened}
+          onClose={() => setSessionModalOpened(false)}
+          onSave={handleAddToSession}
+          title="Add log to session"
+          namePrefix="simulated_log"
+        />
       </Box>
     </Box>
   );
