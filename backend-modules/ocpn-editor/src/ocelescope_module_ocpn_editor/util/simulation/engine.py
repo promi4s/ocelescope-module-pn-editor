@@ -1,101 +1,174 @@
-"""Corrections to SimPN's run loop and binding search, and the choice of which binding fires."""
-import bisect
+"""
+The simulation loop, following qel_simulation's Simulation and ExecutionQueue (without quantities):
+
+- A transition fires in two phases. The event *start* removes the bound objects from the input places and creates
+  the objects of output-only types; the event *end*, after the drawn duration, puts all of them into the output
+  places. Only ended events are logged, with their start time.
+- A time-ordered queue holds event ends and object arrivals; the clock jumps to the next queued time once nothing
+  more can start at the current time.
+- Choosing what starts: among the transitions with an enabled binding, the highest-priority one is taken with
+  `priority_probability`, otherwise one at random; then one of its bindings at random.
+
+Unlike qel_simulation, which starts at most one event per queue time, every binding that is enabled at the current
+time is started before the clock moves on, so independent cases run in parallel.
+"""
+import heapq
 import itertools
 import random
-from simpn.simulator import SimProblem
+from collections.abc import Iterator
+from dataclasses import dataclass, field
+from ocelescope_module_ocpn_editor.model.simulation.simulation_config import ArrivalConfig, SimulationConfig
+from ocelescope_module_ocpn_editor.util.simulation.bindings import enabled_bindings
+from ocelescope_module_ocpn_editor.util.simulation.model import Binding, SimNet, SimPlace, SimTransition
+from ocelescope_module_ocpn_editor.util.simulation.objects import ObjectIdCounter, link
+
+# Starts at one point in time before the run is considered stuck in a loop of zero-duration transitions.
+MAX_STARTS_PER_MOMENT = 10_000
 
 
-def new_combinations(previous: list[int], available: list[int]):
-    """
-    Token index combinations (one token per input place) that are possible with `available` tokens per place but
-    were not yet possible with `previous`, i.e. that use at least one newly available token. Place j is the first
-    place with a new token: earlier places use old tokens only, later places any token. So every combination is
-    produced exactly once over all moments.
-    """
-    if any(n == 0 for n in available):
-        return
-    for j in range(len(available)):
-        if previous[j] == available[j]:
-            continue
-        ranges = (
-            [range(previous[k]) for k in range(j)]
-            + [range(previous[j], available[j])]
-            + [range(available[k]) for k in range(j + 1, len(available))]
-        )
-        yield from itertools.product(*ranges)
+@dataclass(eq=False)
+class Firing:
+    """One event: a transition fired with a binding."""
+    id: int
+    transition: SimTransition
+    start: float
+    end: float
+    binding: Binding  # consumed objects per input type
+    created: dict[str, list[dict]] = field(default_factory=dict)  # new objects per output-only type
 
 
-class BoundedSimProblem(SimProblem):
-    """
-    SimProblem with two corrections to SimPN:
+class Engine:
+    def __init__(self, net: SimNet, config: SimulationConfig, rng: random.Random, factory: ObjectIdCounter):
+        self.net = net
+        self.config = config
+        self.rng = rng
+        self.factory = factory
+        self.clock = 0.0
+        self.objects: list[dict] = []  # every object of the run, for the log
+        self.priority = [net.transitions[t] for t in config.activity_priority if t in net.transitions]
+        self._queue: list[tuple] = []  # (time, sequence, kind, payload); sequence keeps insertion order on ties
+        self._sequence = itertools.count()
+        self._firing_ids = itertools.count(1)
 
-    - The run ends at the duration. SimPN checks the duration before `bindings()` moves the clock to the next
-      possible event, so it would still fire one event after the end (e.g. one more object arrival).
-    - Bindings are searched iteratively and at the earliest possible moment. SimPN's search is recursive (one call
-      per search level), which exceeds Python's recursion limit when a guard rejects many combinations, e.g. orders
-      waiting for their items on a variable arc. When nothing can fire now, it also returns the combination with the
-      smallest token indices instead of the earliest one, so one waiting order can delay others.
-      Here the token times are walked in ascending order and every combination is checked once, at the first moment
-      all of its tokens are available. Requires every place to be sorted by time, which holds for OCPNVar places,
-      their TimedSimVarQueue and the arrival clocks.
-    """
+    # ---------------------------------------------------------------- objects
 
-    def event_bindings(self, event):
-        if not event.incoming:
-            return super().event_bindings(event)
-        places = event.incoming
-        markings = [list(place.marking) for place in places]  # TimedSimVarQueue rebuilds its marking per access
-        if any(not marking for marking in markings):
-            return None
-        token_times = [[token.time for token in marking] for marking in markings]
-        moments = sorted({self.clock, *(t for times in token_times for t in times if t > self.clock)})
+    def new_object(self, object_type: str) -> dict:
+        obj = self.factory.create(object_type)
+        self.objects.append(obj)
+        return obj
 
-        previous = [0] * len(places)  # tokens per place that were already available at the previous moment
-        for moment in moments:
-            available = [bisect.bisect_right(times, moment) for times in token_times]
-            for combination in new_combinations(previous, available):
-                values = [markings[j][i].value for j, i in enumerate(combination)]
-                if event.guard is None or SimProblem.evaluate_guard(values, event):
-                    binding = [(place, markings[j][i]) for j, (place, i) in enumerate(zip(places, combination))]
-                    return binding, max(token.time for _, token in binding)
-            previous = available
-        return None
+    def put_initial(self, place: SimPlace, number: int):
+        for _ in range(number):
+            place.add(self.new_object(place.object_type))
 
-    def steps(self, duration):
-        """Fire events until the duration is reached, yielding each fired timed binding."""
-        while self.clock <= duration:
-            bindings = self.bindings()
-            if not bindings:
-                break
-            if self.clock > duration:  # the next event would happen after the end
-                self.clock = duration
-                break
-            timed_binding = self.binding_priority(bindings)
-            self.fire(timed_binding)
-            yield timed_binding
+    def add_arrivals(self, place: SimPlace, arrival: ArrivalConfig):
+        """New objects arriving in `place`; the first one at the start of the run."""
+        self._schedule(0.0, "arrival", (place, arrival))
 
-    def simulate(self, duration, reporter=None):
-        reporters = [] if reporter is None else reporter if isinstance(reporter, list) else [reporter]
-        for timed_binding in self.steps(duration):
-            for r in reporters:
-                r.callback(timed_binding)
+    # ---------------------------------------------------------------- queue
 
+    def _schedule(self, time: float, kind: str, payload):
+        heapq.heappush(self._queue, (time, next(self._sequence), kind, payload))
 
-def choose_binding(rng: random.Random, priority: list, priority_probability: float):
-    """
-    Binding priority for SimPN: if a transition from the priority list is enabled, it is
-    chosen with `priority_probability` (the highest enabled one); otherwise a random enabled transition.
-    Then one of that transition's bindings at random.
-    """
-    def choose(bindings):
-        by_event: dict = {}
-        for binding in bindings:
-            by_event.setdefault(binding[2], []).append(binding)
-        prioritized = [event for event in priority if event in by_event]
-        if prioritized and rng.random() < priority_probability:
-            event = prioritized[0]
+    def _process_due(self) -> Iterator[Firing]:
+        """Execute all queued items due at the current time, yielding the firings that ended."""
+        while self._queue and self._queue[0][0] <= self.clock:
+            _, _, kind, payload = heapq.heappop(self._queue)
+            if kind == "end":
+                self._end(payload)
+                yield payload
+            else:
+                place, arrival = payload
+                place.add(self.new_object(place.object_type))
+                self._schedule(self.clock + arrival.sample_gap(self.rng), "arrival", payload)
+
+    # ---------------------------------------------------------------- firing
+
+    def _enabled(self) -> dict[SimTransition, Binding]:
+        """
+        One random binding per enabled transition. qel_simulation draws from all enabled bindings; the search here
+        visits candidates in random order, so its first binding is already a random one.
+        """
+        enabled = {}
+        for transition in self.net.transitions.values():
+            bindings = enabled_bindings(transition, self.rng, limit=1)
+            if bindings:
+                enabled[transition] = bindings[0]
+        return enabled
+
+    def _choose(self, enabled: dict[SimTransition, Binding]) -> tuple[SimTransition, Binding]:
+        prioritized = [t for t in self.priority if t in enabled]
+        if prioritized and self.rng.random() < self.config.priority_probability:
+            transition = prioritized[0]
         else:
-            event = rng.choice(list(by_event))
-        return rng.choice(by_event[event])
+            transition = self.rng.choice(list(enabled))
+        return transition, enabled[transition]
 
-    return choose
+    def _created_count(self, transition: SimTransition, object_type: str) -> int:
+        count = transition.counts.get(object_type)
+        if count is None or object_type not in transition.variable_output_types:
+            return 1  # a normal arc carries exactly one object
+        if count.exact is not None:
+            return count.exact
+        return self.rng.randint(count.minimum, count.maximum or count.minimum)
+
+    def _start(self, transition: SimTransition, binding: Binding) -> Firing:
+        for object_type, objects in binding.items():
+            for place in transition.input_places[object_type]:
+                for obj in objects:
+                    place.remove(obj)
+
+        created = {
+            object_type: [self.new_object(object_type) for _ in range(self._created_count(transition, object_type))]
+            for object_type in transition.created_types
+        }
+        # new objects belong to the objects they were created with
+        consumed = [obj for objects in binding.values() for obj in objects]
+        new = [obj for objects in created.values() for obj in objects]
+        for i, obj in enumerate(new):
+            for other in consumed + new[i + 1:]:
+                if other["object_type"] != obj["object_type"]:
+                    link(obj, other)
+
+        duration = transition.delay.sample(self.rng)
+        firing = Firing(next(self._firing_ids), transition, self.clock, self.clock + duration, binding, created)
+        self._schedule(firing.end, "end", firing)
+        return firing
+
+    def _end(self, firing: Firing):
+        for objects_by_type in (firing.binding, firing.created):
+            for object_type, objects in objects_by_type.items():
+                for place in firing.transition.output_places.get(object_type, []):
+                    for obj in objects:
+                        place.add(obj)
+
+    # ---------------------------------------------------------------- run
+
+    def steps(self, duration: float) -> Iterator[Firing]:
+        """Run until `duration` or until nothing can happen anymore, yielding every firing when it ends."""
+        starts_at_moment = 0
+        while True:
+            yield from self._process_due()
+            enabled = self._enabled()
+            if enabled:
+                self._start(*self._choose(enabled))
+                starts_at_moment += 1
+                if starts_at_moment > MAX_STARTS_PER_MOMENT:
+                    raise ValueError(
+                        f"More than {MAX_STARTS_PER_MOMENT} events started at the same time; the net probably has a "
+                        "loop of transitions without delay."
+                    )
+                continue
+            if not self._queue:
+                return  # nothing running and nothing scheduled
+            next_time = self._queue[0][0]
+            if next_time > duration:
+                self.clock = duration
+                return
+            self.clock = next_time
+            starts_at_moment = 0
+
+    @property
+    def running(self) -> int:
+        """Events that started but did not end before the run stopped."""
+        return sum(1 for item in self._queue if item[2] == "end")

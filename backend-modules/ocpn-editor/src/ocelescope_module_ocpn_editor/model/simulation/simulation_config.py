@@ -17,8 +17,7 @@ class DelayConfig(BaseModel):
 
 
 # ObjectCount, ArrivalConfig and the priority settings follow the binding object counts, object creation
-# frequencies and activity priorities of qel_simulation
-# (https://github.com/ninagraves/qel_simulation), adapted to this module's SimPN-based simulation.
+# frequencies and activity priorities of qel_simulation (https://github.com/ninagraves/qel_simulation).
 
 
 class ObjectCount(BaseModel):
