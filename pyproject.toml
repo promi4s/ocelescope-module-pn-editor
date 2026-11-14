@@ -9,8 +9,6 @@ dependencies = [
   "ocelescope-module-ocel>=0.11.0,<0.12.0",
   "ocelescope-module-ocpn-editor",
   "ocelescope-module-filter>=0.11.0,<0.12.0",
-  "pygame>=2.6.1",
-  "simpn>=1.10.0",
 ]
 
 [tool.uv.workspace]
