@@ -27,7 +27,8 @@ class SimTransition:
     id: str
     name: str  # unique name, used as activity in the log
     silent: bool
-    delay: DelayConfig
+    delay: DelayConfig  # from enabled to start
+    duration: DelayConfig  # from start to end
     input_places: dict[str, list[SimPlace]]  # object type -> input places of that type
     output_places: dict[str, list[SimPlace]]  # object type -> output places of that type
     variable_input_types: set[str]  # input types with at least one variable arc

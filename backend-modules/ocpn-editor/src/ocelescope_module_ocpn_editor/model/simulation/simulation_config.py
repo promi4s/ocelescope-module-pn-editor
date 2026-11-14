@@ -6,7 +6,7 @@ from ocelescope_module_ocpn_editor.model.editor.editor_ocpn import Ocpn
 
 
 class DelayConfig(BaseModel):
-    """General delay for all transitions"""
+    """A time drawn for each firing: used for the delay and for the duration of transitions."""
     distribution: Literal["fixed", "exponential"] = "fixed"
     value: float = Field(default=1, ge=0)
 
@@ -54,8 +54,17 @@ class ArrivalConfig(BaseModel):
 
 class SimulationConfig(BaseModel):
     duration: float = Field(default=500, ge=0)
-    default_delay: DelayConfig = DelayConfig()
-    delays: dict[str, DelayConfig] = {}
+    # A firing: enabled --delay--> start (inputs consumed) --duration--> end (outputs produced).
+    default_delay: DelayConfig = Field(
+        default_factory=lambda: DelayConfig(value=0),
+        description="How long a transition stays enabled before it starts. Restarts when it gets disabled.",
+    )
+    delays: dict[str, DelayConfig] = Field(default={}, description="Per transition id: its own delay.")
+    default_duration: DelayConfig = Field(
+        default_factory=DelayConfig,
+        description="How long an event takes from its start to its end, when its outputs are produced.",
+    )
+    durations: dict[str, DelayConfig] = Field(default={}, description="Per transition id: its own duration.")
     object_counts: dict[str, dict[str, ObjectCount]] = Field(
         default={}, description="Per transition id, per object type: how many objects to bind or create."
     )

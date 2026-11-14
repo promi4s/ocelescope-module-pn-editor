@@ -1,6 +1,5 @@
 import {
   ActionIcon,
-  Badge,
   Button,
   Group,
   Stack,
@@ -12,8 +11,6 @@ import {
 import {
   ArrowUpWideNarrow,
   Boxes,
-  ChevronDown,
-  ChevronUp,
   CircleDot,
   ListChecks,
   LogIn,
@@ -21,6 +18,7 @@ import {
   Plus,
   RotateCcw,
   Square,
+  Hourglass,
   Timer,
   X,
 } from "lucide-react";
@@ -104,16 +102,12 @@ const TransitionSettings = ({
   id,
 }: Props & { id: string }) => {
   const unit = config.time_unit ?? "minutes";
-  const priority = priorityOf(net, config);
-  const rank = priority.indexOf(id);
+  const prioritized = priorityOf(net, config).includes(id);
   const delay = config.delays?.[id];
+  const duration = config.durations?.[id];
+  // silent transitions take no time unless it is set for them explicitly
+  const silent = !net.petri_net.transitions.find((t) => t.id === id)?.label;
   const counts = config.object_counts?.[id];
-  const move = (by: number) => {
-    const next = [...priority];
-    next.splice(rank, 1);
-    next.splice(rank + by, 0, id);
-    onChange({ ...config, activity_priority: next });
-  };
 
   return (
     <Stack gap="xs">
@@ -122,13 +116,13 @@ const TransitionSettings = ({
         kind="Transition"
         name={transitionName(net, id)}
         action={
-          (delay || counts) && (
-            <Tooltip label="Reset delay and object numbers" withArrow>
+          (delay || duration || counts) && (
+            <Tooltip label="Reset delay, duration and object numbers" withArrow>
               <ActionIcon
                 variant="subtle"
                 color="gray"
                 size="sm"
-                aria-label="Reset delay and object numbers"
+                aria-label="Reset delay, duration and object numbers"
                 disabled={disabled}
                 onClick={() => onChange(resetTransition(config, id))}
               >
@@ -143,7 +137,10 @@ const TransitionSettings = ({
           value="delay"
           icon={<Timer size={ICON} />}
           title="Delay"
-          summary={delay ? describeDelay(delay, unit) : "Default delay"}
+          summary={
+            delay ? describeDelay(delay, unit) : silent ? "None (silent)" : "Default delay"
+          }
+          description="How long the transition waits once it can fire, before it starts."
         >
           <DelayInput
             value={delay}
@@ -152,6 +149,32 @@ const TransitionSettings = ({
               onChange({ ...config, delays: d ? { ...rest, [id]: d } : rest });
             }}
             allowDefault
+            defaultLabel={silent ? "None (silent)" : "Default delay"}
+            disabled={disabled}
+          />
+        </SettingsSection>
+
+        <SettingsSection
+          value="duration"
+          icon={<Hourglass size={ICON} />}
+          title="Duration"
+          summary={
+            duration
+              ? describeDelay(duration, unit)
+              : silent
+                ? "None (silent)"
+                : "Default duration"
+          }
+          description="How long the transition takes from its start until its outputs are produced."
+        >
+          <DelayInput
+            value={duration}
+            onChange={(d) => {
+              const { [id]: _, ...rest } = config.durations ?? {};
+              onChange({ ...config, durations: d ? { ...rest, [id]: d } : rest });
+            }}
+            allowDefault
+            defaultLabel={silent ? "None (silent)" : "Default duration"}
             disabled={disabled}
           />
         </SettingsSection>
@@ -181,49 +204,18 @@ const TransitionSettings = ({
           value="priority"
           icon={<ArrowUpWideNarrow size={ICON} />}
           title="Priority"
-          summary={rank >= 0 ? `Rank ${rank + 1} of ${priority.length}` : "Not prioritized"}
+          summary={prioritized ? "Prioritized" : "Not prioritized"}
         >
           <Switch
             size="sm"
             label="Prioritize"
-            description="Prefer this transition when several can fire."
-            checked={rank >= 0}
+            description="Prefer this transition when several can fire. The order of prioritized transitions is set in General."
+            checked={prioritized}
             disabled={disabled}
             onChange={(e) =>
               onChange(setPrioritized(config, id, e.currentTarget.checked))
             }
           />
-          {rank >= 0 && (
-            <Group gap={4}>
-              <Badge variant="light" size="sm">
-                {`Rank ${rank + 1} of ${priority.length}`}
-              </Badge>
-              <Tooltip label="Higher priority" withArrow>
-                <ActionIcon
-                  variant="subtle"
-                  color="gray"
-                  size="sm"
-                  aria-label="Higher priority"
-                  disabled={disabled || rank === 0}
-                  onClick={() => move(-1)}
-                >
-                  <ChevronUp size={14} />
-                </ActionIcon>
-              </Tooltip>
-              <Tooltip label="Lower priority" withArrow>
-                <ActionIcon
-                  variant="subtle"
-                  color="gray"
-                  size="sm"
-                  aria-label="Lower priority"
-                  disabled={disabled || rank === priority.length - 1}
-                  onClick={() => move(1)}
-                >
-                  <ChevronDown size={14} />
-                </ActionIcon>
-              </Tooltip>
-            </Group>
-          )}
         </SettingsSection>
       </SettingsAccordion>
     </Stack>
@@ -304,7 +296,10 @@ const CustomizedOverview = ({
     .map((t) => t.id)
     .filter(
       (id) =>
-        config.delays?.[id] || config.object_counts?.[id] || priority.includes(id),
+        config.delays?.[id] ||
+        config.durations?.[id] ||
+        config.object_counts?.[id] ||
+        priority.includes(id),
     );
   const places = net.petri_net.places
     .map((p) => p.id)
@@ -347,11 +342,13 @@ const CustomizedOverview = ({
             <Stack gap={6}>
               {transitions.map((id) =>
                 row(id, transitionName(net, id), [
-                  config.delays?.[id] && describeDelay(config.delays[id], unit),
+                  config.delays?.[id] && `Delay: ${describeDelay(config.delays[id], unit)}`,
+                  config.durations?.[id] &&
+                    `Duration: ${describeDelay(config.durations[id], unit)}`,
                   config.object_counts?.[id] &&
                     describeObjectCounts(config.object_counts[id]),
                   priority.includes(id) &&
-                    `Priority rank ${priority.indexOf(id) + 1}`,
+                    "Prioritized",
                 ]),
               )}
               {places.map((id) =>

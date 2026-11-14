@@ -36,12 +36,14 @@ def build_simulation(ocpn: Ocpn, config: SimulationConfig) -> Engine:
             )
 
         silent = not t.label
+        # silent transitions only route objects: they take no time unless set for them explicitly
+        no_time = DelayConfig(value=0)
         transition = SimTransition(
             id=t.id,
             name=names[t.id],
             silent=silent,
-            # silent transitions only route objects: they take no time unless a delay is set for them explicitly
-            delay=config.delays.get(t.id) or (DelayConfig(value=0) if silent else config.default_delay),
+            delay=config.delays.get(t.id) or (no_time if silent else config.default_delay),
+            duration=config.durations.get(t.id) or (no_time if silent else config.default_duration),
             input_places=input_places,
             output_places=output_places,
             variable_input_types=variable_input_types,

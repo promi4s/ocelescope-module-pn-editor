@@ -1,13 +1,18 @@
 """
 The simulation loop, following qel_simulation's Simulation and ExecutionQueue (without quantities):
 
-- A transition fires in two phases. The event *start* removes the bound objects from the input places and creates
-  the objects of output-only types; the event *end*, after the drawn duration, puts all of them into the output
-  places. Only ended events are logged, with their start time.
-- A time-ordered queue holds event ends and object arrivals; the clock jumps to the next queued time once nothing
-  more can start at the current time.
-- Choosing what starts: among the transitions with an enabled binding, the highest-priority one is taken with
-  `priority_probability`, otherwise one at random; then one of its bindings at random.
+- A firing has three points in time:  enabled --delay--> start --duration--> end.
+  * *Delay*: when a transition becomes enabled, a delay is drawn; it can only start once it has stayed enabled that
+    long. If it gets disabled meanwhile (another transition took the objects), the delay is dropped and drawn anew
+    the next time it is enabled. After every start the delay is drawn again, so a transition with a delay starts at
+    most once per delay (one firing at a time waits, like a single server).
+  * The event *start* removes the bound objects from the input places and creates the objects of output-only types.
+  * The event *end*, after the drawn duration, puts all of them into the output places.
+  Only ended events are logged, with their start time (and the end time as an attribute).
+- A time-ordered queue holds event ends and object arrivals; the clock jumps to the next queued time or the next
+  elapsed delay once nothing more can start at the current time.
+- Choosing what starts: among the transitions with an enabled binding whose delay has elapsed, the highest-priority
+  one is taken with `priority_probability`, otherwise one at random; then one of its bindings at random.
 
 Unlike qel_simulation, which starts at most one event per queue time, every binding that is enabled at the current
 time is started before the clock moves on, so independent cases run in parallel.
@@ -49,6 +54,7 @@ class Engine:
         self._queue: list[tuple] = []  # (time, sequence, kind, payload); sequence keeps insertion order on ties
         self._sequence = itertools.count()
         self._firing_ids = itertools.count(1)
+        self._ready_at: dict[SimTransition, float] = {}  # enabled transitions -> time their delay has elapsed
 
     # ---------------------------------------------------------------- objects
 
@@ -96,6 +102,19 @@ class Engine:
                 enabled[transition] = bindings[0]
         return enabled
 
+    def _ready(self, enabled: dict[SimTransition, Binding]) -> dict[SimTransition, Binding]:
+        """
+        Updates the delays and returns the enabled transitions whose delay has elapsed: newly enabled transitions
+        draw their delay, disabled ones drop it.
+        """
+        for transition in list(self._ready_at):
+            if transition not in enabled:
+                del self._ready_at[transition]
+        for transition in enabled:
+            if transition not in self._ready_at:
+                self._ready_at[transition] = self.clock + transition.delay.sample(self.rng)
+        return {t: b for t, b in enabled.items() if self._ready_at[t] <= self.clock}
+
     def _choose(self, enabled: dict[SimTransition, Binding]) -> tuple[SimTransition, Binding]:
         prioritized = [t for t in self.priority if t in enabled]
         if prioritized and self.rng.random() < self.config.priority_probability:
@@ -130,7 +149,7 @@ class Engine:
                 if other["object_type"] != obj["object_type"]:
                     link(obj, other)
 
-        duration = transition.delay.sample(self.rng)
+        duration = transition.duration.sample(self.rng)
         firing = Firing(next(self._firing_ids), transition, self.clock, self.clock + duration, binding, created)
         self._schedule(firing.end, "end", firing)
         return firing
@@ -149,19 +168,22 @@ class Engine:
         starts_at_moment = 0
         while True:
             yield from self._process_due()
-            enabled = self._enabled()
-            if enabled:
-                self._start(*self._choose(enabled))
+            ready = self._ready(self._enabled())
+            if ready:
+                transition, binding = self._choose(ready)
+                self._start(transition, binding)
+                del self._ready_at[transition]  # the next firing waits for a new delay
                 starts_at_moment += 1
                 if starts_at_moment > MAX_STARTS_PER_MOMENT:
                     raise ValueError(
                         f"More than {MAX_STARTS_PER_MOMENT} events started at the same time; the net probably has a "
-                        "loop of transitions without delay."
+                        "loop of transitions without delay and duration."
                     )
                 continue
-            if not self._queue:
-                return  # nothing running and nothing scheduled
-            next_time = self._queue[0][0]
+            times = ([self._queue[0][0]] if self._queue else []) + list(self._ready_at.values())
+            if not times:
+                return  # nothing running, waiting or scheduled
+            next_time = min(times)
             if next_time > duration:
                 self.clock = duration
                 return

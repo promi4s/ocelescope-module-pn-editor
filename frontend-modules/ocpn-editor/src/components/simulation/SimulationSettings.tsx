@@ -14,6 +14,7 @@ import {
   Boxes,
   Dices,
   Settings2,
+  Hourglass,
   Timer,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -34,8 +35,10 @@ const current_day = () => {
 
 export const defaultSimulationConfig: SimulationConfig = {
   duration: 500,
-  default_delay: { distribution: "fixed", value: 1 },
+  default_delay: { distribution: "fixed", value: 0 },
   delays: {},
+  default_duration: { distribution: "fixed", value: 1 },
+  durations: {},
   seed: null,
   start_time: current_day(),
   time_unit: "minutes",
@@ -65,14 +68,15 @@ export const transitionName = (net: ObjectCentricPetriNet, id: string) => {
   return transition?.label || `${id} (silent)`;
 };
 
-/** Removes the delay and object counts of a transition. */
+/** Removes the delay, duration and object counts of a transition. */
 export const resetTransition = (
   config: SimulationConfig,
   transition: string,
 ): SimulationConfig => {
   const { [transition]: _delay, ...delays } = config.delays ?? {};
+  const { [transition]: _duration, ...durations } = config.durations ?? {};
   const { [transition]: _count, ...object_counts } = config.object_counts ?? {};
-  return { ...config, delays, object_counts };
+  return { ...config, delays, durations, object_counts };
 };
 
 /** Group of collapsible settings sections; several can be open at once. */
@@ -142,11 +146,14 @@ export const DelayInput = ({
   value,
   onChange,
   allowDefault = false,
+  defaultLabel = "Default",
   disabled,
 }: {
   value: DelayConfig | undefined;
   onChange: (delay: DelayConfig | undefined) => void;
   allowDefault?: boolean;
+  /** label of the option that uses the general setting */
+  defaultLabel?: string;
   disabled?: boolean;
 }) => (
   <Stack gap={4}>
@@ -155,7 +162,7 @@ export const DelayInput = ({
       disabled={disabled}
       data={
         allowDefault
-          ? [{ value: "default", label: "Default delay" }, ...distributionOptions]
+          ? [{ value: "default", label: defaultLabel }, ...distributionOptions]
           : distributionOptions
       }
       value={value?.distribution ?? (allowDefault ? "default" : "fixed")}
@@ -171,7 +178,7 @@ export const DelayInput = ({
     {value && (
       <NumberInput
         size="xs"
-        label={value.distribution === "exponential" ? "Mean" : "Delay"}
+        label={value.distribution === "exponential" ? "Mean" : "Time"}
         min={0}
         disabled={disabled}
         value={value.value ?? 1}
@@ -196,7 +203,8 @@ export const GeneralSettings = ({
   disabled?: boolean;
 }) => {
   const unit = config.time_unit ?? "minutes";
-  const defaultDelay = config.default_delay ?? {
+  const defaultDelay = config.default_delay ?? { distribution: "fixed", value: 0 };
+  const defaultDuration = config.default_duration ?? {
     distribution: "fixed",
     value: 1,
   };
@@ -271,7 +279,7 @@ export const GeneralSettings = ({
           />
           <NumberInput
             size="xs"
-            label="Duration"
+            label="Simulated time"
             min={0}
             disabled={disabled}
             value={config.duration ?? 500}
@@ -285,14 +293,33 @@ export const GeneralSettings = ({
         icon={<Timer size={ICON} />}
         title="Default delay"
         summary={describeDelay(defaultDelay, unit)}
-        description="Used by every transition without its own delay."
+        description="How long a transition waits once it can fire, before it starts. Used by every transition without its own delay."
       >
         <DelayInput
           value={defaultDelay}
           onChange={(delay) =>
             onChange({
               ...config,
-              default_delay: delay ?? { distribution: "fixed", value: 1 },
+              default_delay: delay ?? { distribution: "fixed", value: 0 },
+            })
+          }
+          disabled={disabled}
+        />
+      </SettingsSection>
+
+      <SettingsSection
+        value="duration"
+        icon={<Hourglass size={ICON} />}
+        title="Default duration"
+        summary={describeDelay(defaultDuration, unit)}
+        description="How long a transition takes from its start until its outputs are produced. Used by every transition without its own duration."
+      >
+        <DelayInput
+          value={defaultDuration}
+          onChange={(duration) =>
+            onChange({
+              ...config,
+              default_duration: duration ?? { distribution: "fixed", value: 1 },
             })
           }
           disabled={disabled}

@@ -152,7 +152,12 @@ async def load_from_session(
 # ============================================
 
 
-@router.post("/simulation/stream", operation_id="streamSimulation")
+@router.post(
+    "/simulation/stream",
+    operation_id="streamSimulation",
+    # documents the result of the final "done" message, so the frontend client gets the SimulationResult type
+    responses={200: {"model": SimulationResult, "description": "NDJSON stream; the last message carries this result."}},
+)
 def simulate_ocpn_stream(request: SimulationRequest) -> StreamingResponse:
     """
     Simulates the net, streaming newline-delimited JSON: progress messages while it runs,
