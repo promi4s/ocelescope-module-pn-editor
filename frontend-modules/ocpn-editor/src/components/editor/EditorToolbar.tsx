@@ -1,4 +1,4 @@
-import { ActionIcon, Divider, Group, Text, Tooltip } from "@mantine/core";
+import { ActionIcon, Divider, Group, Stack, Text, Tooltip } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import {
   DatabaseArrowDown,
@@ -82,9 +82,14 @@ export const EditorToolbar = ({
           borderBottom: "2px solid var(--mantine-color-default-border)",
         }}
       >
-        <Text fw={600} size="md">
-          Object-Centric Petri-Net Editor
-        </Text>
+        <Stack gap={3} style={{ minWidth: 0 }}>
+          <Text fw={600} size="md" lh={1.2}>
+            Object-Centric Petri Net Editor
+          </Text>
+          <Text size="xs" c="dimmed" truncate>
+            Use the toolbox on the right to add places, transitions and arcs.
+          </Text>
+        </Stack>
         <Group
           gap={4}
           p={4}
