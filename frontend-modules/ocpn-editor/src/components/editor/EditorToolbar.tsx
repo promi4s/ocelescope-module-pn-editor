@@ -1,9 +1,18 @@
-import { ActionIcon, Divider, Group, Stack, Text, Tooltip } from "@mantine/core";
+import {
+  ActionIcon,
+  Divider,
+  Group,
+  Stack,
+  Text,
+  Tooltip,
+} from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import {
+  Activity,
   DatabaseArrowDown,
   DatabaseArrowUp,
   DownloadIcon,
+  PencilRuler,
   PlayIcon,
   Upload,
 } from "lucide-react";
@@ -23,16 +32,21 @@ import { FormatMenu } from "./FormatMenu";
 import { LoadSessionModal } from "./LoadSessionModal";
 import { SaveSessionModal } from "./SaveSessionModal";
 
-/** Header of the editor: title, loading/saving the net (session, file) and the layout button. */
+export type EditorMode = "edit" | "simulate";
+
 export const EditorToolbar = ({
   net,
   onLoad,
   onRunLayout,
+  mode,
+  onModeChange,
 }: {
   net: ObjectCentricPetriNet;
   /** called with a net loaded from a file or the session */
   onLoad: (net: ObjectCentricPetriNet) => void;
   onRunLayout: () => void;
+  mode: EditorMode;
+  onModeChange: (mode: EditorMode) => void;
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [saveModalOpened, setSaveModalOpened] = useState(false);
@@ -87,9 +101,41 @@ export const EditorToolbar = ({
             Object-Centric Petri Net Editor
           </Text>
           <Text size="xs" c="dimmed" truncate>
-            Use the toolbox on the right to add places, transitions and arcs.
+            {mode === "edit"
+              ? "Use the toolbox on the right to add places, transitions and arcs."
+              : "Configure and run a simulation in the panel on the right."}
           </Text>
         </Stack>
+        <Group gap="xs" wrap="nowrap">
+          <Group
+            gap={4}
+            p={4}
+            wrap="nowrap"
+            style={{
+              border: "1px solid var(--mantine-color-default-border)",
+              borderRadius: "var(--mantine-radius-md)",
+            }}
+          >
+            {(
+              [
+                { value: "edit", label: "Edit net", icon: <PencilRuler size={16} /> },
+                { value: "simulate", label: "Simulate", icon: <Activity size={16} /> },
+              ] as const
+            ).map(({ value, label, icon }) => (
+              <Tooltip key={value} label={label} withArrow>
+                <ActionIcon
+                  variant={mode === value ? "light" : "subtle"}
+                  color={mode === value ? "blue" : "gray"}
+                  size="md"
+                  aria-label={label}
+                  aria-pressed={mode === value}
+                  onClick={() => onModeChange(value)}
+                >
+                  {icon}
+                </ActionIcon>
+              </Tooltip>
+            ))}
+          </Group>
         <Group
           gap={4}
           p={4}
@@ -170,6 +216,7 @@ export const EditorToolbar = ({
               <PlayIcon size={16} />
             </ActionIcon>
           </Tooltip>
+        </Group>
         </Group>
       </Group>
 

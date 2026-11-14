@@ -1,34 +1,30 @@
-import type { OcpnImportResponse as ObjectCentricPetriNet } from "../../api/ocpnEditor";
 import {
-  ActionIcon,
-  Card,
+  Badge,
+  Accordion,
   Checkbox,
-  Divider,
   Group,
   NumberInput,
   Select,
   Stack,
-  Tabs,
   Text,
   TextInput,
-  Tooltip,
-  UnstyledButton,
 } from "@mantine/core";
-import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  ArrowUpWideNarrow,
+  Boxes,
+  Dices,
+  Settings2,
+  Timer,
+} from "lucide-react";
+import type { ReactNode } from "react";
 import type {
   DelayConfig,
   DelayConfigDistribution,
-  ObjectCount,
+  OcpnImportResponse as ObjectCentricPetriNet,
   SimulationConfig,
   SimulationConfigTimeUnit,
 } from "../../api/ocpnEditor";
-import {
-  ArrivalsCard,
-  PriorityCard,
-  ObjectCountEditor,
-  describeObjectCounts,
-} from "./SimulationOptions";
+import { PrioritySettings } from "./SimulationOptions";
 
 const current_day = () => {
   const d = new Date();
@@ -45,39 +41,6 @@ export const defaultSimulationConfig: SimulationConfig = {
   time_unit: "minutes",
 };
 
-/** One-line overview of the settings, shown next to the Settings button. */
-export const describeSettings = (
-  config: SimulationConfig,
-  net: ObjectCentricPetriNet,
-) => {
-  const unit = config.time_unit ?? "minutes";
-  const transitions = new Set(net.petri_net.transitions.map((t) => t.id));
-  const places = new Set(net.petri_net.places.map((p) => p.id));
-  const delay = config.default_delay ?? { distribution: "fixed", value: 1 };
-  const customized = new Set(
-    [
-      ...Object.keys(config.delays ?? {}),
-      ...Object.keys(config.object_counts ?? {}),
-    ].filter((id) => transitions.has(id)),
-  ).size;
-  const prioritized = (config.activity_priority ?? []).filter((id) =>
-    transitions.has(id),
-  ).length;
-  const arrivals = Object.keys(config.arrivals ?? {}).filter((id) =>
-    places.has(id),
-  ).length;
-  return [
-    `${config.duration ?? 500} ${unit}`,
-    `default delay ${delay.distribution === "exponential" ? "~" : ""}${delay.value ?? 1}`,
-    customized && `${customized} customized transition${customized > 1 ? "s" : ""}`,
-    prioritized && `${prioritized} prioritized`,
-    arrivals && `arrivals in ${arrivals} place${arrivals > 1 ? "s" : ""}`,
-    config.seed != null && "seeded",
-  ]
-    .filter(Boolean)
-    .join(" · ");
-};
-
 const timeUnitOptions = [
   { value: "seconds", label: "Seconds" },
   { value: "minutes", label: "Minutes" },
@@ -92,12 +55,90 @@ const distributionOptions = [
   { value: "exponential", label: "Exponential" },
 ];
 
-const describeDelay = (delay: DelayConfig, unit: string) =>
+export const describeDelay = (delay: DelayConfig, unit: string) =>
   delay.distribution === "exponential"
     ? `Exponential, mean ${delay.value ?? 1} ${unit}`
     : `Fixed, ${delay.value ?? 1} ${unit}`;
 
-const DelayInput = ({
+export const transitionName = (net: ObjectCentricPetriNet, id: string) => {
+  const transition = net.petri_net.transitions.find((t) => t.id === id);
+  return transition?.label || `${id} (silent)`;
+};
+
+/** Removes the delay and object counts of a transition. */
+export const resetTransition = (
+  config: SimulationConfig,
+  transition: string,
+): SimulationConfig => {
+  const { [transition]: _delay, ...delays } = config.delays ?? {};
+  const { [transition]: _count, ...object_counts } = config.object_counts ?? {};
+  return { ...config, delays, object_counts };
+};
+
+/** Group of collapsible settings sections; several can be open at once. */
+export const SettingsAccordion = ({
+  defaultValue,
+  children,
+}: {
+  defaultValue?: string[];
+  children: ReactNode;
+}) => (
+  <Accordion
+    multiple
+    variant="separated"
+    radius="sm"
+    defaultValue={defaultValue}
+    styles={{
+      control: { paddingBlock: 4 },
+      content: { paddingTop: 0 },
+    }}
+  >
+    {children}
+  </Accordion>
+);
+
+/** One collapsible setting: title and current value in the header, inputs when opened. */
+export const SettingsSection = ({
+  value,
+  icon,
+  title,
+  summary,
+  description,
+  children,
+}: {
+  value: string;
+  icon: ReactNode;
+  title: ReactNode;
+  /** current value, shown in the header while collapsed */
+  summary?: ReactNode;
+  description?: ReactNode;
+  children: ReactNode;
+}) => (
+  <Accordion.Item value={value}>
+    <Accordion.Control icon={icon}>
+      <Text size="sm" fw={500}>
+        {title}
+      </Text>
+      {summary && (
+        <Text size="xs" c="dimmed" truncate>
+          {summary}
+        </Text>
+      )}
+    </Accordion.Control>
+    <Accordion.Panel>
+      <Stack gap="xs">
+        {description && (
+          <Text size="xs" c="dimmed">
+            {description}
+          </Text>
+        )}
+        {children}
+      </Stack>
+    </Accordion.Panel>
+  </Accordion.Item>
+);
+
+export const DelayInput = ({
   value,
   onChange,
   allowDefault = false,
@@ -107,254 +148,196 @@ const DelayInput = ({
   onChange: (delay: DelayConfig | undefined) => void;
   allowDefault?: boolean;
   disabled?: boolean;
-}) => {
-  const number = (key: keyof DelayConfig, label: string, fallback: number) => (
-    <NumberInput
+}) => (
+  <Stack gap={4}>
+    <Select
       size="xs"
-      label={label}
-      min={0}
       disabled={disabled}
-      value={(value?.[key] as number | undefined) ?? fallback}
-      onChange={(v) => onChange({ ...value, [key]: Number(v) || 0 })}
-      style={{ flex: 1 }}
+      data={
+        allowDefault
+          ? [{ value: "default", label: "Default delay" }, ...distributionOptions]
+          : distributionOptions
+      }
+      value={value?.distribution ?? (allowDefault ? "default" : "fixed")}
+      onChange={(v) =>
+        onChange(
+          !v || v === "default"
+            ? undefined
+            : { ...value, distribution: v as DelayConfigDistribution },
+        )
+      }
+      allowDeselect={false}
     />
-  );
-
-  return (
-    <Stack gap={4}>
-      <Select
+    {value && (
+      <NumberInput
         size="xs"
+        label={value.distribution === "exponential" ? "Mean" : "Delay"}
+        min={0}
         disabled={disabled}
-        data={allowDefault ? [{ value: "default", label: "Default delay" }, ...distributionOptions] : distributionOptions}
-        value={value?.distribution ?? (allowDefault ? "default" : "fixed")}
-        onChange={(v) =>
-          onChange(!v || v === "default" ? undefined : { ...value, distribution: v as DelayConfigDistribution })
-        }
-        allowDeselect={false}
+        value={value.value ?? 1}
+        onChange={(v) => onChange({ ...value, value: Number(v) || 0 })}
       />
-      {value?.distribution === "fixed" && <Group gap="xs">{number("value", "Delay", 1)}</Group>}
-      {value?.distribution === "exponential" && <Group gap="xs">{number("value", "Mean", 1)}</Group>}
-    </Stack>
-  );
-};
+    )}
+  </Stack>
+);
 
-export const SimulationSettings = ({
+const ICON = 16;
+
+/** General tab: object types and the settings that apply to the whole simulation. */
+export const GeneralSettings = ({
   net,
   config,
   onChange,
-  selectedTransition,
   disabled,
 }: {
   net: ObjectCentricPetriNet;
   config: SimulationConfig;
   onChange: (config: SimulationConfig) => void;
-  selectedTransition: string | null;
   disabled?: boolean;
 }) => {
-  const delays = config.delays ?? {};
-  const transitionName = (id: string) => {
-    const transition = net.petri_net.transitions.find((t) => t.id === id);
-    return transition?.label || `${id} (silent)`;
+  const unit = config.time_unit ?? "minutes";
+  const defaultDelay = config.default_delay ?? {
+    distribution: "fixed",
+    value: 1,
   };
-  const setDelay = (transition: string, delay: DelayConfig | undefined) => {
-    const { [transition]: _, ...rest } = delays;
-    onChange({ ...config, delays: delay ? { ...rest, [transition]: delay } : rest });
-  };
-
-  const timeUnit = config.time_unit ?? "minutes";
+  const objectTypes = Array.from(
+    new Set(Object.values(net.place_object_type)),
+  ).sort();
   const transitionIds = new Set(net.petri_net.transitions.map((t) => t.id));
-  const transitionOptions = net.petri_net.transitions.map((t) => ({
-    value: t.id,
-    label: transitionName(t.id),
-  }));
-  const counts = config.object_counts ?? {};
-  const setObjectCounts = (
-    transition: string,
-    value: Record<string, ObjectCount> | undefined,
-  ) => {
-    const { [transition]: _, ...rest } = counts;
-    onChange({ ...config, object_counts: value ? { ...rest, [transition]: value } : rest });
-  };
-  const resetTransition = (transition: string) => {
-    const { [transition]: _delay, ...otherDelays } = delays;
-    const { [transition]: _count, ...otherCounts } = counts;
-    onChange({ ...config, delays: otherDelays, object_counts: otherCounts });
-  };
-  // Settings of deleted transitions are kept in the config but not shown.
-  const customized = net.petri_net.transitions
-    .map((t) => t.id)
-    .filter((id) => delays[id] || counts[id]);
-
-  const [pickedTransition, setPickedTransition] = useState<string | null>(null);
-  useEffect(() => {
-    if (selectedTransition) setPickedTransition(selectedTransition);
-  }, [selectedTransition]);
+  const prioritized = (config.activity_priority ?? []).filter((id) =>
+    transitionIds.has(id),
+  ).length;
+  const startLabel = config.start_time
+    ? config.start_time.replace("T", " ")
+    : "";
 
   return (
-    <Tabs defaultValue={selectedTransition ? "transitions" : "general"}>
-      <Tabs.List grow>
-        <Tabs.Tab value="general">General</Tabs.Tab>
-        <Tabs.Tab value="transitions">Transitions</Tabs.Tab>
-        <Tabs.Tab value="priority">Priority</Tabs.Tab>
-        <Tabs.Tab value="arrivals">Arrivals</Tabs.Tab>
-      </Tabs.List>
-      <Tabs.Panel value="general" pt="sm">
-        <Stack gap="xs">
-      <Card withBorder radius="sm" padding="sm">
-        <Text fw={600} size="sm" mb="xs">
-          General
-        </Text>
-          <TextInput
-            size="xs"
-            type="datetime-local"
-            label="Start"
-            disabled={disabled}
-            value={config.start_time ?? ""}
-            onChange={(e) => onChange({ ...config, start_time: e.currentTarget.value || current_day() })}
-            style={{ flex: 2 }}
-          />
+    <SettingsAccordion>
+      <SettingsSection
+        value="object-types"
+        icon={<Boxes size={ICON} />}
+        title="Object types"
+        summary={objectTypes.length ? objectTypes.join(", ") : "None yet"}
+        description="Object attributes will be editable here."
+      >
+        {objectTypes.length === 0 ? (
+          <Text size="xs" c="dimmed">
+            Add a place to create an object type.
+          </Text>
+        ) : (
+          <Group gap={4}>
+            {objectTypes.map((type) => (
+              <Badge key={type} variant="light" color="gray" tt="none">
+                {type}
+              </Badge>
+            ))}
+          </Group>
+        )}
+      </SettingsSection>
+
+      <SettingsSection
+        value="time"
+        icon={<Settings2 size={ICON} />}
+        title="Time"
+        summary={`${startLabel} · ${config.duration ?? 500} ${unit}`}
+      >
+        <TextInput
+          size="xs"
+          type="datetime-local"
+          label="Start"
+          disabled={disabled}
+          value={config.start_time ?? ""}
+          onChange={(e) =>
+            onChange({
+              ...config,
+              start_time: e.currentTarget.value || current_day(),
+            })
+          }
+        />
+        <Group gap="xs" grow wrap="nowrap">
           <Select
             size="xs"
             label="Time unit"
             data={timeUnitOptions}
             disabled={disabled}
-            value={config.time_unit ?? "minutes"}
-            onChange={(v) => onChange({ ...config, time_unit: (v ?? "minutes") as SimulationConfigTimeUnit })}
+            value={unit}
+            onChange={(v) =>
+              onChange({
+                ...config,
+                time_unit: (v ?? "minutes") as SimulationConfigTimeUnit,
+              })
+            }
             allowDeselect={false}
-            style={{ flex: 1 }}
           />
+          <NumberInput
+            size="xs"
+            label="Duration"
+            min={0}
+            disabled={disabled}
+            value={config.duration ?? 500}
+            onChange={(v) => onChange({ ...config, duration: Number(v) || 0 })}
+          />
+        </Group>
+      </SettingsSection>
 
-        <NumberInput
-          size="xs"
-          label={`Duration (${config.time_unit ?? "minutes"})`}
-          description="Stop the simulation when the duration is reached."
-          min={0}
-          mb="xs"
+      <SettingsSection
+        value="delay"
+        icon={<Timer size={ICON} />}
+        title="Default delay"
+        summary={describeDelay(defaultDelay, unit)}
+        description="Used by every transition without its own delay."
+      >
+        <DelayInput
+          value={defaultDelay}
+          onChange={(delay) =>
+            onChange({
+              ...config,
+              default_delay: delay ?? { distribution: "fixed", value: 1 },
+            })
+          }
           disabled={disabled}
-          value={config.duration ?? 500}
-          onChange={(v) => onChange({ ...config, duration: Number(v) || 0 })}
         />
+      </SettingsSection>
+
+      <SettingsSection
+        value="priority"
+        icon={<ArrowUpWideNarrow size={ICON} />}
+        title="Activity priority"
+        summary={
+          prioritized
+            ? `${prioritized} prioritized · ${Math.round((config.priority_probability ?? 0.5) * 100)} %`
+            : "Random choice"
+        }
+        description="When several transitions can fire, prefer the prioritized ones, highest first."
+      >
+        <PrioritySettings
+          net={net}
+          config={config}
+          onChange={onChange}
+          disabled={disabled}
+        />
+      </SettingsSection>
+
+      <SettingsSection
+        value="seed"
+        icon={<Dices size={ICON} />}
+        title="Random seed"
+        summary={config.seed != null ? "On" : "Off"}
+      >
         <Checkbox
           size="xs"
           label="Use a seed"
           description="Every run returns the same result."
           disabled={disabled}
           checked={config.seed != null}
-          onChange={(e) => onChange({ ...config, seed: e.currentTarget.checked ? FIXED_SEED : null })}
+          onChange={(e) =>
+            onChange({
+              ...config,
+              seed: e.currentTarget.checked ? FIXED_SEED : null,
+            })
+          }
         />
-      </Card>
-
-      <Card withBorder radius="sm" padding="sm">
-        <Text fw={600} size="sm">
-          {`Default Delay (${config.time_unit ?? "minutes"})`}
-        </Text>
-        <Text size="xs" c="dimmed" mb="xs">
-          Set a default delay for all transitions.
-        </Text>
-        <DelayInput
-          value={config.default_delay}
-          onChange={(delay) => onChange({ ...config, default_delay: delay ?? { distribution: "fixed", value: 1 } })}
-          disabled={disabled}
-        />
-      </Card>
-
-        </Stack>
-      </Tabs.Panel>
-      <Tabs.Panel value="transitions" pt="sm">
-      <Card withBorder radius="sm" padding="sm">
-        <Text fw={600} size="sm">
-          Transition Settings
-        </Text>
-        <Text size="xs" c={"dimmed"} mb={"xs"}>
-          Pick a transition here, or select it in the net before opening the settings.
-        </Text>
-        <Select
-          size="xs"
-          placeholder="Select transition"
-          data={transitionOptions}
-          value={pickedTransition}
-          onChange={setPickedTransition}
-          disabled={disabled}
-          searchable
-          clearable
-          mb="xs"
-        />
-        {pickedTransition && transitionIds.has(pickedTransition) && (
-          <>
-            <Text size="xs" fw={500} mb={4}>
-              {`Delay (${timeUnit})`}
-            </Text>
-            <DelayInput
-              value={delays[pickedTransition]}
-              onChange={(delay) => setDelay(pickedTransition, delay)}
-              allowDefault
-              disabled={disabled}
-            />
-            <ObjectCountEditor
-              net={net}
-              transition={pickedTransition}
-              value={counts[pickedTransition]}
-              onChange={(value) => setObjectCounts(pickedTransition, value)}
-              disabled={disabled}
-            />
-          </>
-        )}
-
-        <Divider my="sm" />
-        <Text size="xs" fw={500} mb={4}>
-          Customized transitions
-        </Text>
-        {customized.length === 0 ? (
-          <Text size="xs" c="dimmed">
-            All transitions use the default delay and object numbers.
-          </Text>
-        ) : (
-          <Stack gap={2}>
-            {customized.map((id) => (
-              <Group key={id} gap="xs" wrap="nowrap" justify="space-between">
-                <UnstyledButton
-                  onClick={() => setPickedTransition(id)}
-                  style={{ minWidth: 0, flex: 1 }}
-                >
-                  <Text size="xs" truncate fw={id === pickedTransition ? 600 : 400}>
-                    {transitionName(id)}
-                  </Text>
-                  {delays[id] && (
-                    <Text size="xs" c="dimmed">
-                      {describeDelay(delays[id], timeUnit)}
-                    </Text>
-                  )}
-                  {counts[id] && (
-                    <Text size="xs" c="dimmed">
-                      {describeObjectCounts(counts[id])}
-                    </Text>
-                  )}
-                </UnstyledButton>
-                <Tooltip label="Reset to defaults" withArrow>
-                  <ActionIcon
-                    variant="subtle"
-                    color="gray"
-                    size="sm"
-                    aria-label="Reset to defaults"
-                    disabled={disabled}
-                    onClick={() => resetTransition(id)}
-                  >
-                    <X size={14} />
-                  </ActionIcon>
-                </Tooltip>
-              </Group>
-            ))}
-          </Stack>
-        )}
-      </Card>
-
-      </Tabs.Panel>
-      <Tabs.Panel value="priority" pt="sm">
-      <PriorityCard net={net} config={config} onChange={onChange} disabled={disabled} />
-      </Tabs.Panel>
-      <Tabs.Panel value="arrivals" pt="sm">
-      <ArrivalsCard net={net} config={config} onChange={onChange} disabled={disabled} />
-      </Tabs.Panel>
-    </Tabs>
+      </SettingsSection>
+    </SettingsAccordion>
   );
 };

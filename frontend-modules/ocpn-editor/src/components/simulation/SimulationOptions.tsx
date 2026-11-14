@@ -1,18 +1,13 @@
 // Settings for the binding object counts, activity priority and object arrivals, which follow
 // qel_simulation by Nina Graves (CC BY 4.0, https://github.com/ninagraves/qel_simulation).
 import {
-  ActionIcon,
-  Card,
   Group,
   MultiSelect,
   NumberInput,
   SegmentedControl,
-  Select,
   Stack,
   Text,
-  Tooltip,
 } from "@mantine/core";
-import { X } from "lucide-react";
 import type {
   ArrivalConfig,
   OcpnImportResponse as ObjectCentricPetriNet,
@@ -199,10 +194,7 @@ export const ObjectCountEditor = ({
     onChange(Object.keys(next).length ? next : undefined);
   };
   return (
-    <Stack gap="xs" mt="xs">
-      <Text size="xs" fw={500}>
-        Number of objects
-      </Text>
+    <Stack gap="xs">
       {targets.length === 0 ? (
         <Text size="xs" c="dimmed">
           Only for variable arcs: how many objects the transition takes from a
@@ -223,7 +215,22 @@ export const ObjectCountEditor = ({
   );
 };
 
-export const PriorityCard = ({
+/** Adds `transition` to the end of the priority list, or removes it. */
+export const setPrioritized = (
+  config: SimulationConfig,
+  transition: string,
+  prioritized: boolean,
+): SimulationConfig => {
+  const rest = (config.activity_priority ?? []).filter(
+    (id) => id !== transition,
+  );
+  return {
+    ...config,
+    activity_priority: prioritized ? [...rest, transition] : rest,
+  };
+};
+
+export const PrioritySettings = ({
   net,
   config,
   onChange,
@@ -239,16 +246,11 @@ export const PriorityCard = ({
     transitionIds.has(id),
   );
   return (
-    <Card withBorder radius="sm" padding="sm">
-      <Text fw={600} size="sm">
-        Activity Priority
-      </Text>
-      <Text size="xs" c="dimmed" mb="xs">
-        When several transitions can fire, prefer these, highest first. Order =
-        order of selection.
-      </Text>
+    <Stack gap="xs">
       <MultiSelect
         size="xs"
+        label="Priority order"
+        description="Order of selection = priority. You can also prioritize a transition in the Node tab."
         placeholder={priority.length ? undefined : "No priority: random choice"}
         data={net.petri_net.transitions.map((t) => ({
           value: t.id,
@@ -263,9 +265,8 @@ export const PriorityCard = ({
       {priority.length > 0 && (
         <NumberInput
           size="xs"
-          mt="xs"
           label="Priority probability (%)"
-          description="Chance that the highest enabled one is taken instead of a random transition."
+          description="Chance that the highest enabled prioritized transition is taken instead of a random one."
           min={0}
           max={100}
           value={Math.round((config.priority_probability ?? 0.5) * 100)}
@@ -279,121 +280,72 @@ export const PriorityCard = ({
           disabled={disabled}
         />
       )}
-    </Card>
+    </Stack>
   );
 };
 
-export const ArrivalsCard = ({
-  net,
-  config,
+export const placeLabel = (net: ObjectCentricPetriNet, id: string) =>
+  `${id} (${net.place_object_type[id] ?? "?"})`;
+
+/** Arrival settings of one place: random (rate) or fixed interval. */
+export const ArrivalEditor = ({
+  arrival,
+  unit,
   onChange,
   disabled,
 }: {
-  net: ObjectCentricPetriNet;
-  config: SimulationConfig;
-  onChange: (config: SimulationConfig) => void;
+  arrival: ArrivalConfig;
+  unit: string;
+  onChange: (arrival: ArrivalConfig) => void;
   disabled?: boolean;
 }) => {
-  const unit = config.time_unit ?? "minutes";
-  const arrivals = config.arrivals ?? {};
-  const placeIds = net.petri_net.places.map((p) => p.id);
-  const configured = placeIds.filter((id) => arrivals[id]);
-  const placeLabel = (id: string) =>
-    `${id} (${net.place_object_type[id] ?? "?"})`;
-  const setArrival = (place: string, arrival: ArrivalConfig | undefined) => {
-    const { [place]: _, ...rest } = arrivals;
-    onChange({
-      ...config,
-      arrivals: arrival ? { ...rest, [place]: arrival } : rest,
-    });
-  };
+  const mode = arrival.mode ?? "rate";
   return (
-    <Card withBorder radius="sm" padding="sm">
-      <Text fw={600} size="sm">
-        Object Arrivals
-      </Text>
-      <Text size="xs" c="dimmed" mb="xs">
-        New objects arriving in a place during the simulation, the first at the
-        start.
-      </Text>
-      <Stack gap="xs">
-        {configured.map((place) => {
-          const arrival = arrivals[place];
-          return (
-            <Stack key={place} gap={4}>
-              <Group justify="space-between" wrap="nowrap">
-                <Text size="xs" fw={500} truncate>
-                  {placeLabel(place)}
-                </Text>
-                <Tooltip label="Remove arrivals" withArrow>
-                  <ActionIcon
-                    variant="subtle"
-                    color="gray"
-                    size="sm"
-                    aria-label="Remove arrivals"
-                    disabled={disabled}
-                    onClick={() => setArrival(place, undefined)}
-                  >
-                    <X size={14} />
-                  </ActionIcon>
-                </Tooltip>
-              </Group>
-              <Group gap="xs" grow wrap="nowrap">
-                <SegmentedControl
-                  size="xs"
-                  value={arrival.mode ?? "rate"}
-                  onChange={(v) =>
-                    setArrival(place, {
-                      ...arrival,
-                      mode: v as ArrivalConfig["mode"],
-                    })
-                  }
-                  data={[
-                    { label: "Random", value: "rate" },
-                    { label: "Every", value: "interval" },
-                  ]}
-                  disabled={disabled}
-                />
-                <NumberInput
-                  size="xs"
-                  min={0.0001}
-                  step={0.5}
-                  decimalScale={4}
-                  value={arrival.value}
-                  onChange={(v) =>
-                    setArrival(place, { ...arrival, value: Number(v) || 1 })
-                  }
-                  rightSection={
-                    <Text size="xs" c="dimmed" pr={4}>
-                      {(arrival.mode ?? "rate") === "rate" ? `/${unit}` : unit}
-                    </Text>
-                  }
-                  rightSectionWidth={70}
-                  disabled={disabled}
-                />
-              </Group>
-              <Text size="xs" c="dimmed">
-                {(arrival.mode ?? "rate") === "rate"
-                  ? `On average ${arrival.value} per ${unit.replace(/s$/, "")}, at random times.`
-                  : `One every ${arrival.value} ${unit}.`}
-              </Text>
-            </Stack>
-          );
-        })}
-        <Select
+    <Stack gap={4}>
+      <Group gap="xs" grow wrap="nowrap">
+        <SegmentedControl
           size="xs"
-          placeholder="Add arrivals to a place"
-          data={placeIds
-            .filter((id) => !arrivals[id])
-            .map((id) => ({ value: id, label: placeLabel(id) }))}
-          value={null}
-          onChange={(place) =>
-            place && setArrival(place, { mode: "rate", value: 1 })
+          value={mode}
+          onChange={(v) =>
+            onChange({ ...arrival, mode: v as ArrivalConfig["mode"] })
           }
-          searchable
+          data={[
+            { label: "Random", value: "rate" },
+            { label: "Every", value: "interval" },
+          ]}
           disabled={disabled}
         />
-      </Stack>
-    </Card>
+        <NumberInput
+          size="xs"
+          min={0.0001}
+          step={0.5}
+          decimalScale={4}
+          value={arrival.value}
+          onChange={(v) => onChange({ ...arrival, value: Number(v) || 1 })}
+          rightSection={
+            <Text size="xs" c="dimmed" pr={4}>
+              {mode === "rate" ? `/${unit}` : unit}
+            </Text>
+          }
+          rightSectionWidth={70}
+          disabled={disabled}
+        />
+      </Group>
+      <Text size="xs" c="dimmed">
+        {mode === "rate"
+          ? `On average ${arrival.value} per ${unit.replace(/s$/, "")}, at random times.`
+          : `One every ${arrival.value} ${unit}.`}
+      </Text>
+    </Stack>
   );
 };
+
+export const setArrival = (
+  config: SimulationConfig,
+  place: string,
+  arrival: ArrivalConfig | undefined,
+): SimulationConfig => {
+  const { [place]: _, ...rest } = config.arrivals ?? {};
+  return { ...config, arrivals: arrival ? { ...rest, [place]: arrival } : rest };
+};
+

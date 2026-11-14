@@ -3,7 +3,6 @@ import {
   Center,
   Loader,
   ScrollArea,
-  SegmentedControl,
   Splitter,
   Stack,
 } from "@mantine/core";
@@ -17,7 +16,10 @@ import {
   useState,
 } from "react";
 import type { OcpnImportResponse as ObjectCentricPetriNet } from "../api/ocpnEditor";
-import { EditorToolbar } from "../components/editor/EditorToolbar";
+import {
+  type EditorMode,
+  EditorToolbar,
+} from "../components/editor/EditorToolbar";
 import { EditSidebar } from "../components/editor/EditSidebar";
 import { SimulationPanel } from "../components/simulation/SimulationPanel";
 
@@ -45,7 +47,7 @@ const Editor = () => {
   const [seedNet, setSeedNet] = useState<ObjectCentricPetriNet>(emptyNet);
   const [remountKey, setRemountKey] = useState(0);
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
-  const [simulationMode, setSimulationMode] = useState(false);
+  const [mode, setMode] = useState<EditorMode>("edit");
 
   const netUpdateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const splitterRef = useRef<UseSplitterReturnValue>(null);
@@ -86,6 +88,8 @@ const Editor = () => {
             net={net}
             onLoad={replaceNet}
             onRunLayout={() => reseed(net)}
+            mode={mode}
+            onModeChange={setMode}
           />
           <Box
             pos="relative"
@@ -110,23 +114,18 @@ const Editor = () => {
       </Splitter.Pane>
 
       <Splitter.Pane defaultSize={25} min="10%" collapsible>
-        <ScrollArea h="100%" type="auto">
-          <Box px="md" pt="md">
-            <SegmentedControl
-              fullWidth
-              value={simulationMode ? "simulate" : "edit"}
-              onChange={(v) => setSimulationMode(v === "simulate")}
-              data={[
-                { label: "Edit", value: "edit" },
-                { label: "Simulate", value: "simulate" },
-              ]}
-            />
-          </Box>
+        {/* block content (instead of Mantine's display: table) so the sidebar can shrink below its content's natural width */}
+        <ScrollArea
+          h="100%"
+          type="auto"
+          scrollbars="y"
+          styles={{ content: { display: "block" } }}
+        >
           {/* both stay mounted, so switching modes keeps form inputs, results and a running simulation */}
-          <Box display={simulationMode ? "none" : undefined}>
+          <Box display={mode === "edit" ? undefined : "none"}>
             <EditSidebar net={net} onEdit={reseed} />
           </Box>
-          <Box display={simulationMode ? undefined : "none"}>
+          <Box display={mode === "simulate" ? undefined : "none"}>
             <SimulationPanel net={net} selectedNodeIds={selectedNodeIds} />
           </Box>
         </ScrollArea>
