@@ -60,19 +60,48 @@ AttributeType = Literal["number", "text", "boolean"]
 
 
 class AttributeOption(BaseModel):
-    """One possible initial value of an attribute, drawn with probability proportional to its weight."""
+    """One possible value of an attribute, drawn with probability proportional to its weight."""
     value: AttributeValue
     weight: float = Field(default=1, gt=0)
+
+
+ValueSource = Literal["fixed", "choice", "uniform"]
+_SOURCE_DESCRIPTION = (
+    "'fixed': `value`. 'choice': one of `options`, by weight. 'uniform': between `minimum` and `maximum` (numbers)."
+)
+
+
+def _draw(
+    source: ValueSource,
+    value: AttributeValue | None,
+    options: list[AttributeOption],
+    minimum: float,
+    maximum: float,
+    integer: bool,
+    rng: random.Random,
+) -> AttributeValue | None:
+    """A value as `source` says: fixed, one of the weighted options, or uniformly between minimum and maximum."""
+    if source == "choice":
+        return rng.choices([o.value for o in options], weights=[o.weight for o in options])[0]
+    if source == "uniform":
+        if integer:
+            return rng.randint(int(minimum), int(maximum))
+        return rng.uniform(minimum, maximum)
+    return value
+
+
+def _check_source(label: str, source: ValueSource, options: list[AttributeOption], minimum: float, maximum: float):
+    if source == "uniform" and maximum < minimum:
+        raise ValueError(f"{label}: maximum must not be smaller than minimum")
+    if source == "choice" and not options:
+        raise ValueError(f"{label}: add at least one option")
 
 
 class ObjectAttributeConfig(BaseModel):
     """An attribute of an object type and how its value is set when an object is created."""
     name: str = Field(min_length=1)
     type: AttributeType = "text"
-    initial: Literal["fixed", "choice", "uniform"] = Field(
-        default="fixed",
-        description="'fixed': `value`. 'choice': one of `options`, by weight. 'uniform': between `minimum` and `maximum` (numbers).",
-    )
+    initial: ValueSource = Field(default="fixed", description=_SOURCE_DESCRIPTION)
     value: AttributeValue | None = None
     options: list[AttributeOption] = []
     minimum: float = 0
@@ -81,23 +110,13 @@ class ObjectAttributeConfig(BaseModel):
 
     @model_validator(mode="after")
     def _check(self):
-        if self.initial == "uniform":
-            if self.type != "number":
-                raise ValueError(f"attribute '{self.name}': a uniform initial value needs a number attribute")
-            if self.maximum < self.minimum:
-                raise ValueError(f"attribute '{self.name}': maximum must not be smaller than minimum")
-        if self.initial == "choice" and not self.options:
-            raise ValueError(f"attribute '{self.name}': add at least one option")
+        if self.initial == "uniform" and self.type != "number":
+            raise ValueError(f"attribute '{self.name}': a uniform initial value needs a number attribute")
+        _check_source(f"attribute '{self.name}'", self.initial, self.options, self.minimum, self.maximum)
         return self
 
     def sample(self, rng: random.Random) -> AttributeValue | None:
-        if self.initial == "choice":
-            return rng.choices([o.value for o in self.options], weights=[o.weight for o in self.options])[0]
-        if self.initial == "uniform":
-            if self.integer:
-                return rng.randint(int(self.minimum), int(self.maximum))
-            return rng.uniform(self.minimum, self.maximum)
-        return self.value
+        return _draw(self.initial, self.value, self.options, self.minimum, self.maximum, self.integer, rng)
 
 
 _COMPARE = {
@@ -128,20 +147,37 @@ class AttributeCondition(BaseModel):
 
 
 class AttributeUpdate(BaseModel):
-    """Sets (or, for numbers, adds to) an attribute of the bound and created objects of one type when an event starts."""
+    """
+    Sets (or, for numbers, adds to) an attribute of the bound and created objects of one type when an event starts.
+    The new value (or the amount to add) can be fixed or random; random values are drawn for every object.
+    """
     object_type: str
     attribute: str
     operation: Literal["set", "add"] = "set"
-    value: AttributeValue
+    source: ValueSource = Field(default="fixed", description=_SOURCE_DESCRIPTION)
+    value: AttributeValue | None = None
+    options: list[AttributeOption] = []
+    minimum: float = 0
+    maximum: float = 1
 
-    def apply(self, current: AttributeValue | None) -> AttributeValue:
+    @model_validator(mode="after")
+    def _check(self):
+        label = f"update of '{self.attribute}'"
+        if self.source == "fixed" and self.value is None:
+            raise ValueError(f"{label}: a value is required")
+        _check_source(label, self.source, self.options, self.minimum, self.maximum)
+        return self
+
+    def apply(self, current: AttributeValue | None, rng: random.Random) -> AttributeValue:
+        # random ranges draw whole numbers, as integer attributes are entered in the editor
+        new = _draw(self.source, self.value, self.options, self.minimum, self.maximum, True, rng)
         if self.operation == "add":
             if isinstance(current, bool) or not isinstance(current, (int, float)):
                 current = 0
-            if isinstance(self.value, bool) or not isinstance(self.value, (int, float)):
+            if isinstance(new, bool) or not isinstance(new, (int, float)):
                 raise ValueError(f"'add' to attribute '{self.attribute}' needs a number")
-            return current + self.value
-        return self.value
+            return current + new
+        return new
 
 
 class SimulationConfig(BaseModel):

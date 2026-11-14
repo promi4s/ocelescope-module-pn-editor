@@ -71,7 +71,7 @@ class Engine:
     def _update_attributes(self, transition: SimTransition, objects_by_type: dict[str, list[dict]]):
         for update in transition.updates:
             for obj in objects_by_type.get(update.object_type, []):
-                value = update.apply(obj["attributes"].get(update.attribute))
+                value = update.apply(obj["attributes"].get(update.attribute), self.rng)
                 obj["attributes"][update.attribute] = value
                 obj["attribute_changes"].append((self.clock, update.attribute, value))
 
