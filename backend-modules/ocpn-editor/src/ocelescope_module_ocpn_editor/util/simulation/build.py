@@ -42,6 +42,13 @@ def _updates(
     return updates
 
 
+def _weight(config: SimulationConfig, transition_id: str, name: str) -> float:
+    weight = config.weights.get(transition_id, 1.0)
+    if weight <= 0:
+        raise ValueError(f"Transition '{name}' needs a routing weight above 0.")
+    return weight
+
+
 def build_simulation(ocpn: Ocpn, config: SimulationConfig) -> Engine:
     net = ocpn.petri_net
     names = event_names(ocpn)
@@ -85,6 +92,7 @@ def build_simulation(ocpn: Ocpn, config: SimulationConfig) -> Engine:
             counts=config.object_counts.get(t.id, {}),
             guards=_guards(config, t.id, names[t.id], input_places),
             updates=_updates(config, t.id, names[t.id], input_places, output_places),
+            weight=_weight(config, t.id, names[t.id]),
         )
         check_object_counts(transition)
         transitions[t.id] = transition

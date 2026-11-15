@@ -16,8 +16,7 @@ class DelayConfig(BaseModel):
         return self.value
 
 
-# ObjectCount, ArrivalConfig and the priority settings follow the binding object counts, object creation
-# frequencies and activity priorities of qel_simulation (https://github.com/ninagraves/qel_simulation).
+# ObjectCount and ArrivalConfig follow the binding object counts and object creation frequencies of qel_simulation (https://github.com/ninagraves/qel_simulation).
 
 
 class ObjectCount(BaseModel):
@@ -196,12 +195,10 @@ class SimulationConfig(BaseModel):
     object_counts: dict[str, dict[str, ObjectCount]] = Field(
         default={}, description="Per transition id, per object type: how many objects to bind or create."
     )
-    activity_priority: list[str] = Field(
-        default=[], description="Transition ids, highest priority first."
-    )
-    priority_probability: float = Field(
-        default=0.5, ge=0, le=1,
-        description="Chance that the highest-priority enabled transition is chosen instead of a random one.",
+    weights: dict[str, float] = Field(
+        default={},
+        description="Per transition id: routing weight (default 1). When enabled transitions compete for the same "
+        "objects, one is chosen with probability proportional to its weight.",
     )
     arrivals: dict[str, ArrivalConfig] = Field(default={}, description="Per place id: objects arriving over time.")
     object_attributes: dict[str, list[ObjectAttributeConfig]] = Field(

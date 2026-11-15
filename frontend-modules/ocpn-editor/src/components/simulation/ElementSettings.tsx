@@ -2,14 +2,13 @@ import {
   ActionIcon,
   Button,
   Group,
+  NumberInput,
   Stack,
-  Switch,
   Text,
   Tooltip,
   UnstyledButton,
 } from "@mantine/core";
 import {
-  ArrowUpWideNarrow,
   Boxes,
   CircleDot,
   Funnel,
@@ -19,6 +18,7 @@ import {
   PenLine,
   Plus,
   RotateCcw,
+  Split,
   Square,
   Hourglass,
   Timer,
@@ -35,7 +35,6 @@ import {
   ObjectCountEditor,
   placeLabel,
   setArrival,
-  setPrioritized,
 } from "./SimulationOptions";
 import {
   ConditionsEditor,
@@ -59,11 +58,6 @@ type Props = {
   config: SimulationConfig;
   onChange: (config: SimulationConfig) => void;
   disabled?: boolean;
-};
-
-const priorityOf = (net: ObjectCentricPetriNet, config: SimulationConfig) => {
-  const ids = new Set(net.petri_net.transitions.map((t) => t.id));
-  return (config.activity_priority ?? []).filter((id) => ids.has(id));
 };
 
 const describeArrival = (
@@ -102,6 +96,73 @@ const NodeHeader = ({
   </Group>
 );
 
+/** Transitions that take objects from at least one of the same input places, i.e. that can compete for them. */
+const competitorsOf = (net: ObjectCentricPetriNet, transition: string) => {
+  const places = new Set(net.petri_net.places.map((p) => p.id));
+  const inputs = new Set(
+    net.petri_net.arcs
+      .filter(({ nodes: [source, target] }) => target === transition && places.has(source))
+      .map(({ nodes: [source] }) => source),
+  );
+  return [
+    ...new Set(
+      net.petri_net.arcs
+        .filter(({ nodes: [source, target] }) => inputs.has(source) && target !== transition)
+        .map(({ nodes: [, target] }) => target),
+    ),
+  ];
+};
+
+const weightOf = (config: SimulationConfig, transition: string) => config.weights?.[transition] ?? 1;
+
+/** Routing weight of a transition and the resulting split against the transitions it competes with. */
+const RoutingWeight = ({ net, config, onChange, disabled, id }: Props & { id: string }) => {
+  const competitors = competitorsOf(net, id);
+  const all = [id, ...competitors];
+  const total = all.reduce((sum, t) => sum + weightOf(config, t), 0);
+  const share = (t: string) => Math.round((weightOf(config, t) / total) * 100);
+  return (
+    <Stack gap="xs">
+      <NumberInput
+        size="xs"
+        label="Weight"
+        min={0.01}
+        step={1}
+        decimalScale={2}
+        value={weightOf(config, id)}
+        onChange={(v) => {
+          const weight = Number(v);
+          const { [id]: _, ...rest } = config.weights ?? {};
+          // the default weight 1 is not stored
+          onChange({ ...config, weights: weight > 0 && weight !== 1 ? { ...rest, [id]: weight } : rest });
+        }}
+        disabled={disabled}
+      />
+      {competitors.length === 0 ? (
+        <Text size="xs" c="dimmed">
+          No other transition takes objects from the same places, so the weight has no effect here.
+        </Text>
+      ) : (
+        <Stack gap={2}>
+          <Text size="xs" c="dimmed">
+            When these can fire at the same time and compete for the same objects, they are chosen this often:
+          </Text>
+          {all.map((t) => (
+            <Group key={t} justify="space-between" wrap="nowrap" gap="xs">
+              <Text size="xs" fw={t === id ? 600 : 400} truncate>
+                {transitionName(net, t)}
+              </Text>
+              <Text size="xs" fw={t === id ? 600 : 400}>
+                {`${share(t)}%`}
+              </Text>
+            </Group>
+          ))}
+        </Stack>
+      )}
+    </Stack>
+  );
+};
+
 const TransitionSettings = ({
   net,
   config,
@@ -110,7 +171,6 @@ const TransitionSettings = ({
   id,
 }: Props & { id: string }) => {
   const unit = config.time_unit ?? "minutes";
-  const prioritized = priorityOf(net, config).includes(id);
   const delay = config.delays?.[id];
   const duration = config.durations?.[id];
   // silent transitions take no time unless it is set for them explicitly
@@ -118,7 +178,14 @@ const TransitionSettings = ({
   const counts = config.object_counts?.[id];
   const conditions = config.guards?.[id] ?? [];
   const updates = config.attribute_updates?.[id] ?? [];
-  const customized = !!(delay || duration || counts || conditions.length || updates.length);
+  const customized = !!(
+    delay ||
+    duration ||
+    counts ||
+    conditions.length ||
+    updates.length ||
+    config.weights?.[id]
+  );
 
   return (
     <Stack gap="xs">
@@ -244,22 +311,17 @@ const TransitionSettings = ({
         </SettingsSection>
 
         <SettingsSection
-          value="priority"
-          icon={<ArrowUpWideNarrow size={ICON} />}
-          title="Priority"
-          summary={prioritized ? "Prioritized" : "Not prioritized"}
+          value="weight"
+          icon={<Split size={ICON} />}
+          title="Routing weight"
+          summary={
+            weightOf(config, id) === 1 ? "Default (1)" : `Weight ${weightOf(config, id)}`
+          }
+          description="How likely this transition is chosen over others that want the same objects."
         >
-          <Switch
-            size="sm"
-            label="Prioritize"
-            description="Prefer this transition when several can fire. The order of prioritized transitions is set in General."
-            checked={prioritized}
-            disabled={disabled}
-            onChange={(e) =>
-              onChange(setPrioritized(config, id, e.currentTarget.checked))
-            }
-          />
+          <RoutingWeight net={net} config={config} onChange={onChange} disabled={disabled} id={id} />
         </SettingsSection>
+
       </SettingsAccordion>
     </Stack>
   );
@@ -334,7 +396,6 @@ const CustomizedOverview = ({
   onFocus,
 }: Props & { onFocus: (id: string) => void }) => {
   const unit = config.time_unit ?? "minutes";
-  const priority = priorityOf(net, config);
   const transitions = net.petri_net.transitions
     .map((t) => t.id)
     .filter(
@@ -344,7 +405,7 @@ const CustomizedOverview = ({
         config.object_counts?.[id] ||
         config.guards?.[id]?.length ||
         config.attribute_updates?.[id]?.length ||
-        priority.includes(id),
+        config.weights?.[id],
     );
   const places = net.petri_net.places
     .map((p) => p.id)
@@ -396,8 +457,7 @@ const CustomizedOverview = ({
                     `If ${config.guards[id].map(describeCondition).join(" and ")}`,
                   !!config.attribute_updates?.[id]?.length &&
                     config.attribute_updates[id].map(describeUpdate).join(", "),
-                  priority.includes(id) &&
-                    "Prioritized",
+                  !!config.weights?.[id] && `Routing weight ${config.weights[id]}`,
                 ]),
               )}
               {places.map((id) =>

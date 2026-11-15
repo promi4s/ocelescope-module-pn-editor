@@ -41,6 +41,7 @@ class SimTransition:
     counts: dict[str, ObjectCount]  # object type -> how many objects to bind or create
     guards: dict[str, list[AttributeCondition]] = field(default_factory=dict)  # input type -> conditions
     updates: list[AttributeUpdate] = field(default_factory=list)  # applied when an event starts
+    weight: float = 1.0  # routing weight in the random choice between enabled transitions
 
     @property
     def created_types(self) -> list[str]:

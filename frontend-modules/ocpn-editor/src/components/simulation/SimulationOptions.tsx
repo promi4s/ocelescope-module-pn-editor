@@ -1,8 +1,7 @@
-// Settings for the binding object counts, activity priority and object arrivals, which follow
+// Settings for the binding object counts and object arrivals, which follow
 // qel_simulation by Nina Graves (CC BY 4.0, https://github.com/ninagraves/qel_simulation).
 import {
   Group,
-  MultiSelect,
   NumberInput,
   SegmentedControl,
   Stack,
@@ -210,75 +209,6 @@ export const ObjectCountEditor = ({
             disabled={disabled}
           />
         ))
-      )}
-    </Stack>
-  );
-};
-
-/** Adds `transition` to the end of the priority list, or removes it. */
-export const setPrioritized = (
-  config: SimulationConfig,
-  transition: string,
-  prioritized: boolean,
-): SimulationConfig => {
-  const rest = (config.activity_priority ?? []).filter(
-    (id) => id !== transition,
-  );
-  return {
-    ...config,
-    activity_priority: prioritized ? [...rest, transition] : rest,
-  };
-};
-
-export const PrioritySettings = ({
-  net,
-  config,
-  onChange,
-  disabled,
-}: {
-  net: ObjectCentricPetriNet;
-  config: SimulationConfig;
-  onChange: (config: SimulationConfig) => void;
-  disabled?: boolean;
-}) => {
-  const transitionIds = new Set(net.petri_net.transitions.map((t) => t.id));
-  const priority = (config.activity_priority ?? []).filter((id) =>
-    transitionIds.has(id),
-  );
-  return (
-    <Stack gap="xs">
-      <MultiSelect
-        size="xs"
-        label="Priority order"
-        description="Order of selection = priority. You can also prioritize a transition in the Node tab."
-        placeholder={priority.length ? undefined : "No priority: random choice"}
-        data={net.petri_net.transitions.map((t) => ({
-          value: t.id,
-          label: t.label || `${t.id} (silent)`,
-        }))}
-        value={priority}
-        onChange={(ids) => onChange({ ...config, activity_priority: ids })}
-        searchable
-        clearable
-        disabled={disabled}
-      />
-      {priority.length > 0 && (
-        <NumberInput
-          size="xs"
-          label="Priority probability (%)"
-          description="Chance that the highest enabled prioritized transition is taken instead of a random one."
-          min={0}
-          max={100}
-          value={Math.round((config.priority_probability ?? 0.5) * 100)}
-          onChange={(v) =>
-            onChange({
-              ...config,
-              priority_probability:
-                Math.min(100, Math.max(0, Number(v) || 0)) / 100,
-            })
-          }
-          disabled={disabled}
-        />
       )}
     </Stack>
   );

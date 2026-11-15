@@ -9,7 +9,6 @@ import {
   TextInput,
 } from "@mantine/core";
 import {
-  ArrowUpWideNarrow,
   Boxes,
   Dices,
   Settings2,
@@ -28,7 +27,6 @@ import {
   describeObjectAttributes,
   ObjectAttributesSettings,
 } from "./AttributeSettings";
-import { PrioritySettings } from "./SimulationOptions";
 
 const current_day = () => {
   const d = new Date();
@@ -71,7 +69,7 @@ export const transitionName = (net: ObjectCentricPetriNet, id: string) => {
   return transition?.label || `${id} (silent)`;
 };
 
-/** Removes the transition's own settings: delay, duration, object counts, conditions and attribute updates. */
+/** Removes the transition's own settings: delay, duration, object counts, conditions, attribute updates and weight. */
 export const resetTransition = (
   config: SimulationConfig,
   transition: string,
@@ -81,7 +79,8 @@ export const resetTransition = (
   const { [transition]: _count, ...object_counts } = config.object_counts ?? {};
   const { [transition]: _guard, ...guards } = config.guards ?? {};
   const { [transition]: _update, ...attribute_updates } = config.attribute_updates ?? {};
-  return { ...config, delays, durations, object_counts, guards, attribute_updates };
+  const { [transition]: _weight, ...weights } = config.weights ?? {};
+  return { ...config, delays, durations, object_counts, guards, attribute_updates, weights };
 };
 
 /** Group of collapsible settings sections; several can be open at once. */
@@ -213,10 +212,6 @@ export const GeneralSettings = ({
     distribution: "fixed",
     value: 1,
   };
-  const transitionIds = new Set(net.petri_net.transitions.map((t) => t.id));
-  const prioritized = (config.activity_priority ?? []).filter((id) =>
-    transitionIds.has(id),
-  ).length;
   const startLabel = config.start_time
     ? config.start_time.replace("T", " ")
     : "";
@@ -317,25 +312,6 @@ export const GeneralSettings = ({
               default_duration: duration ?? { distribution: "fixed", value: 1 },
             })
           }
-          disabled={disabled}
-        />
-      </SettingsSection>
-
-      <SettingsSection
-        value="priority"
-        icon={<ArrowUpWideNarrow size={ICON} />}
-        title="Activity priority"
-        summary={
-          prioritized
-            ? `${prioritized} prioritized · ${Math.round((config.priority_probability ?? 0.5) * 100)} %`
-            : "Random choice"
-        }
-        description="When several transitions can fire, prefer the prioritized ones, highest first."
-      >
-        <PrioritySettings
-          net={net}
-          config={config}
-          onChange={onChange}
           disabled={disabled}
         />
       </SettingsSection>

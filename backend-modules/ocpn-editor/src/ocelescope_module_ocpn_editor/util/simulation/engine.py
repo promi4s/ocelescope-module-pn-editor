@@ -11,8 +11,9 @@ The simulation loop, following qel_simulation's Simulation and ExecutionQueue (w
   Only ended events are logged, with their start time (and the end time as an attribute).
 - A time-ordered queue holds event ends and object arrivals; the clock jumps to the next queued time or the next
   elapsed delay once nothing more can start at the current time.
-- Choosing what starts: among the transitions with an enabled binding whose delay has elapsed, the highest-priority
-  one is taken with `priority_probability`, otherwise one at random; then one of its bindings at random.
+- Choosing what starts: among the transitions with an enabled binding whose delay has elapsed, one is drawn at random,
+  weighted by the transitions' routing weights; then one of its bindings at random. The weights only matter where
+  transitions compete for the same objects, since everything else that is enabled starts at the same time anyway.
 
 Unlike qel_simulation, which starts at most one event per queue time, every binding that is enabled at the current
 time is started before the clock moves on, so independent cases run in parallel.
@@ -50,7 +51,6 @@ class Engine:
         self.factory = factory
         self.clock = 0.0
         self.objects: list[dict] = []  # every object of the run, for the log
-        self.priority = [net.transitions[t] for t in config.activity_priority if t in net.transitions]
         self._queue: list[tuple] = []  # (time, sequence, kind, payload); sequence keeps insertion order on ties
         self._sequence = itertools.count()
         self._firing_ids = itertools.count(1)
@@ -128,11 +128,9 @@ class Engine:
         return {t: b for t, b in enabled.items() if self._ready_at[t] <= self.clock}
 
     def _choose(self, enabled: dict[SimTransition, Binding]) -> tuple[SimTransition, Binding]:
-        prioritized = [t for t in self.priority if t in enabled]
-        if prioritized and self.rng.random() < self.config.priority_probability:
-            transition = prioritized[0]
-        else:
-            transition = self.rng.choice(list(enabled))
+        # weighted by routing weight: in a conflict, weights 7 and 3 give a 70/30 split
+        candidates = list(enabled)
+        transition = self.rng.choices(candidates, weights=[t.weight for t in candidates])[0]
         return transition, enabled[transition]
 
     def _created_count(self, transition: SimTransition, object_type: str) -> int:
