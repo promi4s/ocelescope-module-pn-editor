@@ -228,7 +228,7 @@ export const GeneralSettings = ({
         icon={<Boxes size={ICON} />}
         title="Object types"
         summary={describeObjectAttributes(net, config)}
-        description="Attributes of the objects and their values when an object is created. Transitions can check and change them (Node tab)."
+        description="Attributes of the objects and their values when an object is created."
       >
         <ObjectAttributesSettings
           net={net}
