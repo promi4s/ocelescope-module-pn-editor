@@ -39,16 +39,21 @@ class ObjectCount(BaseModel):
 
 
 class ArrivalConfig(BaseModel):
-    """New objects arriving in a place during the simulation."""
-    mode: Literal["rate", "interval"] = Field(
-        default="rate",
-        description="'rate': random arrivals, on average `value` per time unit. 'interval': one arrival every `value` time units.",
+    """New objects arriving in a place during the simulation, one at a time; the first arrival is at the start."""
+    mode: Literal["fixed", "exponential"] = Field(
+        default="exponential",
+        description=(
+            "Distribution of the time between two arrivals, with (mean) `value` time units: 'fixed' always `value`, "
+            "'exponential' exponentially distributed (a Poisson process)."
+        ),
     )
-    value: float = Field(gt=0)
+    value: float = Field(gt=0, description="(Mean) time between two arrivals, in time units.")
 
     def sample_gap(self, rng: random.Random) -> float:
         """Time until the next arrival."""
-        return rng.expovariate(self.value) if self.mode == "rate" else self.value
+        if self.mode == "exponential":
+            return rng.expovariate(1 / self.value)
+        return self.value
 
 
 # Object attributes, guards and attribute updates follow qel_simulation's object attributes (object_types_attributes,

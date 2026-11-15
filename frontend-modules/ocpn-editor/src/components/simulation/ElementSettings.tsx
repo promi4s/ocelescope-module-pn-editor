@@ -15,6 +15,7 @@ import {
   ListChecks,
   LogIn,
   MousePointerClick,
+  Pencil,
   PenLine,
   Plus,
   RotateCcw,
@@ -24,13 +25,14 @@ import {
   Timer,
   X,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import type {
   OcpnImportResponse as ObjectCentricPetriNet,
   SimulationConfig,
 } from "../../api/ocpnEditor";
 import {
-  ArrivalEditor,
+  ArrivalModal,
+  describeArrival,
   describeObjectCounts,
   ObjectCountEditor,
   placeLabel,
@@ -59,14 +61,6 @@ type Props = {
   onChange: (config: SimulationConfig) => void;
   disabled?: boolean;
 };
-
-const describeArrival = (
-  arrival: { mode?: "rate" | "interval"; value: number },
-  unit: string,
-) =>
-  (arrival.mode ?? "rate") === "rate"
-    ? `~${arrival.value} per ${unit.replace(/s$/, "")}`
-    : `One every ${arrival.value} ${unit}`;
 
 /** Name of the selected node above its settings. */
 const NodeHeader = ({
@@ -336,6 +330,7 @@ const PlaceSettings = ({
 }: Props & { id: string }) => {
   const unit = config.time_unit ?? "minutes";
   const arrival = config.arrivals?.[id];
+  const [modalOpened, setModalOpened] = useState(false);
   return (
     <Stack gap="xs">
       <NodeHeader
@@ -352,37 +347,62 @@ const PlaceSettings = ({
           description="New objects arriving in this place during the simulation, the first at the start."
         >
           {arrival ? (
-            <>
-              <ArrivalEditor
-                arrival={arrival}
-                unit={unit}
-                onChange={(a) => onChange(setArrival(config, id, a))}
+            <Group gap="xs" wrap="nowrap" justify="space-between">
+              <UnstyledButton
+                onClick={() => setModalOpened(true)}
                 disabled={disabled}
-              />
-              <Button
-                size="xs"
-                variant="subtle"
-                color="gray"
-                leftSection={<X size={14} />}
-                disabled={disabled}
-                onClick={() => onChange(setArrival(config, id, undefined))}
+                style={{ minWidth: 0, flex: 1 }}
               >
-                Remove arrivals
-              </Button>
-            </>
+                <Text size="xs" fw={500} truncate>
+                  {describeArrival(arrival, unit)}
+                </Text>
+              </UnstyledButton>
+              <Group gap={2} wrap="nowrap">
+                <Tooltip label="Edit arrivals" withArrow>
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    size="sm"
+                    aria-label="Edit arrivals"
+                    disabled={disabled}
+                    onClick={() => setModalOpened(true)}
+                  >
+                    <Pencil size={14} />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label="Remove arrivals" withArrow>
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    size="sm"
+                    aria-label="Remove arrivals"
+                    disabled={disabled}
+                    onClick={() => onChange(setArrival(config, id, undefined))}
+                  >
+                    <X size={14} />
+                  </ActionIcon>
+                </Tooltip>
+              </Group>
+            </Group>
           ) : (
             <Button
               size="xs"
               variant="default"
               leftSection={<Plus size={14} />}
               disabled={disabled}
-              onClick={() =>
-                onChange(setArrival(config, id, { mode: "rate", value: 1 }))
-              }
+              onClick={() => setModalOpened(true)}
             >
               Add arrivals
             </Button>
           )}
+          <ArrivalModal
+            opened={modalOpened}
+            onClose={() => setModalOpened(false)}
+            place={placeLabel(net, id)}
+            arrival={arrival}
+            unit={unit}
+            onSave={(a) => onChange(setArrival(config, id, a))}
+          />
         </SettingsSection>
       </SettingsAccordion>
     </Stack>

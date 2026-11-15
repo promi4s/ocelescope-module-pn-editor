@@ -1,12 +1,16 @@
 // Settings for the binding object counts and object arrivals, which follow
 // qel_simulation by Nina Graves (CC BY 4.0, https://github.com/ninagraves/qel_simulation).
 import {
+  Button,
   Group,
+  Modal,
   NumberInput,
   SegmentedControl,
+  Select,
   Stack,
   Text,
 } from "@mantine/core";
+import { useEffect, useState } from "react";
 import type {
   ArrivalConfig,
   OcpnImportResponse as ObjectCentricPetriNet,
@@ -217,7 +221,22 @@ export const ObjectCountEditor = ({
 export const placeLabel = (net: ObjectCentricPetriNet, id: string) =>
   `${id} (${net.place_object_type[id] ?? "?"})`;
 
-/** Arrival settings of one place: random (rate) or fixed interval. */
+
+const arrivalModes = [
+  { value: "fixed", label: "Fixed" },
+  { value: "exponential", label: "Exponential" },
+];
+
+export const defaultArrival: ArrivalConfig = { mode: "exponential", value: 1 };
+
+/** Short text for the arrivals of a place, e.g. "Every 2 minutes" or "Exponential, mean 2 minutes". */
+export const describeArrival = (arrival: ArrivalConfig, unit: string) => {
+  const mode = arrival.mode ?? "exponential";
+  if (mode === "fixed") return `Every ${arrival.value} ${unit}`;
+  return `Exponential, mean ${arrival.value} ${unit}`;
+};
+
+/** Arrival settings of one place: distribution of the time between two arrivals, and its (mean) value. */
 export const ArrivalEditor = ({
   arrival,
   unit,
@@ -229,44 +248,93 @@ export const ArrivalEditor = ({
   onChange: (arrival: ArrivalConfig) => void;
   disabled?: boolean;
 }) => {
-  const mode = arrival.mode ?? "rate";
+  const mode = arrival.mode ?? "exponential";
   return (
     <Stack gap={4}>
-      <Group gap="xs" grow wrap="nowrap">
-        <SegmentedControl
-          size="xs"
-          value={mode}
-          onChange={(v) =>
-            onChange({ ...arrival, mode: v as ArrivalConfig["mode"] })
-          }
-          data={[
-            { label: "Random", value: "rate" },
-            { label: "Every", value: "interval" },
-          ]}
-          disabled={disabled}
-        />
-        <NumberInput
-          size="xs"
-          min={0.0001}
-          step={0.5}
-          decimalScale={4}
-          value={arrival.value}
-          onChange={(v) => onChange({ ...arrival, value: Number(v) || 1 })}
-          rightSection={
-            <Text size="xs" c="dimmed" pr={4}>
-              {mode === "rate" ? `/${unit}` : unit}
-            </Text>
-          }
-          rightSectionWidth={70}
-          disabled={disabled}
-        />
-      </Group>
+      <Select
+        size="xs"
+        label="Time between arrivals"
+        data={arrivalModes}
+        value={mode}
+        onChange={(v) =>
+          onChange({ ...arrival, mode: (v ?? "exponential") as ArrivalConfig["mode"] })
+        }
+        allowDeselect={false}
+        disabled={disabled}
+      />
+      <NumberInput
+        size="xs"
+        label={mode === "fixed" ? "Time" : "Mean"}
+        min={0.0001}
+        step={0.5}
+        decimalScale={4}
+        value={arrival.value}
+        onChange={(v) => onChange({ ...arrival, value: Number(v) || 1 })}
+        rightSection={
+          <Text size="xs" c="dimmed" pr={4}>
+            {unit}
+          </Text>
+        }
+        rightSectionWidth={70}
+        disabled={disabled}
+      />
       <Text size="xs" c="dimmed">
-        {mode === "rate"
-          ? `On average ${arrival.value} per ${unit.replace(/s$/, "")}, at random times.`
-          : `One every ${arrival.value} ${unit}.`}
+        {mode === "fixed"
+          ? `One object exactly every ${arrival.value} ${unit}.`
+          : `One object at a time; the time until the next one is exponentially distributed with mean ${arrival.value} ${unit}.`}
+        {" The first object arrives at the start."}
       </Text>
     </Stack>
+  );
+};
+
+/** Modal to add or edit the arrivals of a place, with the same layout as the attribute modal. */
+export const ArrivalModal = ({
+  opened,
+  onClose,
+  place,
+  arrival,
+  unit,
+  onSave,
+}: {
+  opened: boolean;
+  onClose: () => void;
+  /** shown in the title */
+  place: string;
+  /** the current arrivals, or undefined to add new ones */
+  arrival: ArrivalConfig | undefined;
+  unit: string;
+  onSave: (arrival: ArrivalConfig) => void;
+}) => {
+  const [draft, setDraft] = useState<ArrivalConfig>(defaultArrival);
+  useEffect(() => {
+    if (opened) setDraft(arrival ?? defaultArrival);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opened]);
+  return (
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={<Text fw={600}>{`${arrival ? "Edit" : "Add"} arrivals · ${place}`}</Text>}
+    >
+      <Stack gap="sm">
+        <ArrivalEditor arrival={draft} unit={unit} onChange={setDraft} />
+        <Group justify="flex-end" gap="xs">
+          <Button variant="default" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            disabled={!(draft.value > 0)}
+            onClick={() => {
+              onSave(draft);
+              onClose();
+            }}
+          >
+            {arrival ? "Save" : "Add"}
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
   );
 };
 
