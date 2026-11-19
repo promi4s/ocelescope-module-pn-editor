@@ -55,6 +55,7 @@ class Engine:
         self._sequence = itertools.count()
         self._firing_ids = itertools.count(1)
         self._ready_at: dict[SimTransition, float] = {}  # enabled transitions -> time their delay has elapsed
+        self._running: dict[SimTransition, int] = {}  # transition -> its events that started but did not end
 
     # ---------------------------------------------------------------- objects
 
@@ -109,10 +110,15 @@ class Engine:
         """
         enabled = {}
         for transition in self.net.transitions.values():
+            if self._busy(transition):
+                continue  # every server is taken: the objects wait in the input places
             bindings = enabled_bindings(transition, self.rng, limit=1)
             if bindings:
                 enabled[transition] = bindings[0]
         return enabled
+
+    def _busy(self, transition: SimTransition) -> bool:
+        return transition.capacity is not None and self._running.get(transition, 0) >= transition.capacity
 
     def _ready(self, enabled: dict[SimTransition, Binding]) -> dict[SimTransition, Binding]:
         """
@@ -169,9 +175,11 @@ class Engine:
         duration = transition.duration.sample(self.rng)
         firing = Firing(next(self._firing_ids), transition, self.clock, self.clock + duration, binding, created)
         self._schedule(firing.end, "end", firing)
+        self._running[transition] = self._running.get(transition, 0) + 1
         return firing
 
     def _end(self, firing: Firing):
+        self._running[firing.transition] -= 1
         for objects_by_type in (firing.binding, firing.created):
             for object_type, objects in objects_by_type.items():
                 for place in firing.transition.output_places.get(object_type, []):

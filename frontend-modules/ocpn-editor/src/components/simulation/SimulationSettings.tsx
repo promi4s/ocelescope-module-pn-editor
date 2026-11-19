@@ -69,7 +69,7 @@ export const transitionName = (net: ObjectCentricPetriNet, id: string) => {
   return transition?.label || `${id} (silent)`;
 };
 
-/** Removes the transition's own settings: delay, duration, object counts, conditions, attribute updates and weight. */
+/** Removes the transition's own settings: delay, duration, object counts, conditions, attribute updates, weight and capacity. */
 export const resetTransition = (
   config: SimulationConfig,
   transition: string,
@@ -80,7 +80,8 @@ export const resetTransition = (
   const { [transition]: _guard, ...guards } = config.guards ?? {};
   const { [transition]: _update, ...attribute_updates } = config.attribute_updates ?? {};
   const { [transition]: _weight, ...weights } = config.weights ?? {};
-  return { ...config, delays, durations, object_counts, guards, attribute_updates, weights };
+  const { [transition]: _capacity, ...capacities } = config.capacities ?? {};
+  return { ...config, delays, durations, object_counts, guards, attribute_updates, weights, capacities };
 };
 
 /** Group of collapsible settings sections; several can be open at once. */
