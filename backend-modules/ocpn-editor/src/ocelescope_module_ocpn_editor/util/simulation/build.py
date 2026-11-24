@@ -49,13 +49,6 @@ def _weight(config: SimulationConfig, transition_id: str, name: str) -> float:
     return weight
 
 
-def _capacity(config: SimulationConfig, transition_id: str, name: str) -> int | None:
-    capacity = config.capacities.get(transition_id)
-    if capacity is not None and capacity < 1:
-        raise ValueError(f"Transition '{name}' needs a capacity of at least 1.")
-    return capacity
-
-
 def build_simulation(ocpn: Ocpn, config: SimulationConfig) -> Engine:
     net = ocpn.petri_net
     names = event_names(ocpn)
@@ -100,7 +93,6 @@ def build_simulation(ocpn: Ocpn, config: SimulationConfig) -> Engine:
             guards=_guards(config, t.id, names[t.id], input_places),
             updates=_updates(config, t.id, names[t.id], input_places, output_places),
             weight=_weight(config, t.id, names[t.id]),
-            capacity=_capacity(config, t.id, names[t.id]),
         )
         check_object_counts(transition)
         transitions[t.id] = transition

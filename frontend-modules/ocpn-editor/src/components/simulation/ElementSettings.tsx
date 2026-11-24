@@ -23,7 +23,6 @@ import {
   Square,
   Hourglass,
   Timer,
-  Users,
   X,
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
@@ -108,41 +107,6 @@ const competitorsOf = (net: ObjectCentricPetriNet, transition: string) => {
   ];
 };
 
-const capacityOf = (config: SimulationConfig, transition: string) =>
-  config.capacities?.[transition];
-
-const describeCapacity = (capacity: number | undefined) =>
-  capacity == null ? "Unlimited" : `${capacity} at a time`;
-
-/** How many events of a transition can run at the same time (parallel servers); empty means unlimited. */
-const CapacityInput = ({ config, onChange, disabled, id }: Props & { id: string }) => {
-  const capacity = capacityOf(config, id);
-  return (
-    <Stack gap={4}>
-      <NumberInput
-        size="xs"
-        label="Events at the same time"
-        placeholder="Unlimited"
-        min={1}
-        step={1}
-        allowDecimal={false}
-        value={capacity ?? ""}
-        onChange={(v) => {
-          const { [id]: _, ...rest } = config.capacities ?? {};
-          const next = v === "" || v == null ? undefined : Math.max(1, Math.round(Number(v)));
-          onChange({ ...config, capacities: next ? { ...rest, [id]: next } : rest });
-        }}
-        disabled={disabled}
-      />
-      <Text size="xs" c="dimmed">
-        {capacity == null
-          ? "Every enabled binding starts right away, as if there were unlimited workers."
-          : `At most ${capacity} event${capacity === 1 ? "" : "s"} run at once; further objects wait in the input places until one ends.`}
-      </Text>
-    </Stack>
-  );
-};
-
 const weightOf = (config: SimulationConfig, transition: string) => config.weights?.[transition] ?? 1;
 
 /** Routing weight of a transition and the resulting split against the transitions it competes with. */
@@ -214,8 +178,7 @@ const TransitionSettings = ({
     counts ||
     conditions.length ||
     updates.length ||
-    config.weights?.[id] ||
-    config.capacities?.[id]
+    config.weights?.[id]
   );
 
   return (
@@ -342,16 +305,6 @@ const TransitionSettings = ({
         </SettingsSection>
 
         <SettingsSection
-          value="capacity"
-          icon={<Users size={ICON} />}
-          title="Capacity"
-          summary={describeCapacity(capacityOf(config, id))}
-          description="How many events of this transition can run at the same time."
-        >
-          <CapacityInput net={net} config={config} onChange={onChange} disabled={disabled} id={id} />
-        </SettingsSection>
-
-        <SettingsSection
           value="weight"
           icon={<Split size={ICON} />}
           title="Routing weight"
@@ -472,8 +425,7 @@ const CustomizedOverview = ({
         config.object_counts?.[id] ||
         config.guards?.[id]?.length ||
         config.attribute_updates?.[id]?.length ||
-        config.weights?.[id] ||
-        config.capacities?.[id],
+        config.weights?.[id],
     );
   const places = net.petri_net.places
     .map((p) => p.id)
@@ -526,7 +478,6 @@ const CustomizedOverview = ({
                   !!config.attribute_updates?.[id]?.length &&
                     config.attribute_updates[id].map(describeUpdate).join(", "),
                   !!config.weights?.[id] && `Routing weight ${config.weights[id]}`,
-                  !!config.capacities?.[id] && `Capacity: ${describeCapacity(config.capacities[id])}`,
                 ]),
               )}
               {places.map((id) =>

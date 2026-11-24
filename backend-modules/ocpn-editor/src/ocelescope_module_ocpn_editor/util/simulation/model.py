@@ -42,7 +42,6 @@ class SimTransition:
     guards: dict[str, list[AttributeCondition]] = field(default_factory=dict)  # input type -> conditions
     updates: list[AttributeUpdate] = field(default_factory=list)  # applied when an event starts
     weight: float = 1.0  # routing weight in the random choice between enabled transitions
-    capacity: int | None = None  # events of this transition that can run at the same time; None = unlimited
 
     @property
     def created_types(self) -> list[str]:

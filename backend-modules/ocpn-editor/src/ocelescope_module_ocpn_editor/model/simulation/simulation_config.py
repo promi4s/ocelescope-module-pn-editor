@@ -205,11 +205,6 @@ class SimulationConfig(BaseModel):
         description="Per transition id: routing weight (default 1). When enabled transitions compete for the same "
         "objects, one is chosen with probability proportional to its weight.",
     )
-    capacities: dict[str, int] = Field(
-        default={},
-        description="Per transition id: how many of its events can run at the same time (parallel servers). "
-        "Unset means unlimited.",
-    )
     arrivals: dict[str, ArrivalConfig] = Field(default={}, description="Per place id: objects arriving over time.")
     object_attributes: dict[str, list[ObjectAttributeConfig]] = Field(
         default={}, description="Per object type: its attributes and their initial values."
